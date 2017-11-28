@@ -964,7 +964,7 @@ msgstr ""
 
 #: ckanext/gov_theme/templates/package/snippets/resource_item.html:24
 msgid "Explore"
-msgstr "דווח"
+msgstr "סקירה"
 
 #: ckanext/gov_theme/templates/package/snippets/resource_item.html:33
 msgid "Preview"
@@ -980,7 +980,7 @@ msgstr "ערוך"
 
 #: ckanext/gov_theme/templates/package/snippets/resource_view.html:11
 msgid "Embed"
-msgstr "הטמע"
+msgstr "הטמעה"
 
 #: ckanext/gov_theme/templates/package/snippets/resource_view.html:25
 msgid "This resource view is not available at the moment."
