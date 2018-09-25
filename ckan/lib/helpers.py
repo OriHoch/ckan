@@ -594,7 +594,11 @@ def is_rtl_language():
 
 @core_helper
 def get_rtl_css():
-    return config.get('ckan.i18n.rtl_css', '/base/css/main-rtl.css')
+    rtl_css = config.get('ckan.i18n.rtl_css', None)
+    if not rtl_css:
+        main_css = config.get('ckan.main_css', '/base/css/main.css')
+        rtl_css = main_css.replace('.css', '-rtl.css')
+    return rtl_css
 
 
 class Message(object):
