@@ -1,7 +1,0 @@
-
-        [ckan.plugins]
-        custom_recline_view=ckanext.custom_reclineview.plugin:ReclineView
-
-        [babel.extractors]
-        ckan = ckan.lib.extract:extract_ckan
-    
