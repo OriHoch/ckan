@@ -1,4 +1,0 @@
-
-        [ckan.plugins]
-        officedocs_view=ckanext.officedocs.plugin:OfficeDocsPlugin
-    

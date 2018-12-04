@@ -1,0 +1,42 @@
+{% ckan_extends %}
+
+<footer class="site-footer">
+    <div class="container">
+    {% block footer_content %}
+    <div class="row-fluid">
+      <div class="span12 footer-links">
+        {% block footer_nav %}
+          <ul class="unstyled">
+                {% block footer_links_ckan %}
+                  {% set current_lang = request.environ.CKAN_LANG %}
+                  <!--<li class="pull-left"><a href="{{ h.url_for(controller='home', action='about') }}">{{ _('About Gvoernment Data').format(g.site_title) }}</a></li>-->
+                  <li class="pull-left"><a href="{{ h.url_for(controller='home', action='about') }}">{{ _('About').format(g.site_title) }}</a></li>
+                  <li class="pull-left"><a href="{{ h.url_for(controller='home', action='terms') }}">{{ _('Terms Of Use').format(g.site_title) }}</a></li>
+                  <li class="pull-left"><a href="{{ h.url_for(controller='home', action='contact') }}">{{ _('Contact').format(g.site_title) }}</a></li>
+                {% endblock %}
+          </ul>
+        {% endblock %}
+
+      </div>
+
+
+    </div>
+    {% endblock %}
+  </div>
+
+
+
+
+</footer>
+
+
+
+
+
+
+
+
+
+
+
+

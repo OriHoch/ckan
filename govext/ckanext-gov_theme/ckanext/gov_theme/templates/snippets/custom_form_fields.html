@@ -1,0 +1,71 @@
+{#
+Adds a block of custom form fields.
+
+extras - The fields to add.
+errors - A dict of errors for the fields.
+limit  - The total number of fields that should be output.
+Example:
+
+  {% snippet 'snippets/custom_form_fields.html', extras=data.extras, errors=errors, limit=3 %}
+
+#}
+{% import "macros/form.html" as form %}
+<div data-module="custom-fields">
+
+  <input id="field-extras-0-key" type="text" name="extras__0__key" value="{{ _('Frequency') }}" style="visibility:hidden"/>
+  <input id="field-extras-1-key" type="text" name="extras__1__key" value="{{ _('Update') }}" style="visibility:hidden"/>
+
+  {% for extra  in extras  %}
+
+    {% if extra['key'] == _('Frequency') %}
+
+      {{ form.select(name='freq',id='freq', onchange='copyValue("freq","field-extras-0-value")', label=_('Frequency'),
+        options=[{'name':extra['key'], 'value': extra['value']}, {'name':_('Year'), 'value': _('Year')},{'name': _('Month'),
+        'value': _('Month')},{'name': _('Week'), 'value': _('Week')},{'name': _('Day'), 'value': _('Day')},{'name': _('Hour'),'value': _('Hour')}], is_required=True) }}
+        <input id="field-extras-0-value" type="text" name="extras__0__value" value={{ extra['value'] }} placeholder="" style="visibility:hidden"/>
+
+    {% elif extra['key'] == _('Update') %}
+        {{ form.select(name='updateOption',id='updateOption', onchange='copyValue("updateOption","field-extras-1-value")', label=_('Update'), options=[{'name':extra['key'], 'value': extra['value']}, {'name':_('Manual'), 'value': _('Manual')},{'name': _('Automat'), 'value': _('Automat')}],   is_required=True) }}
+         <input id="field-extras-1-value" type="text" name="extras__1__value" value={{ extra['value'] }} placeholder="" style="visibility:hidden"/>
+      {% else %}
+
+      
+
+
+      {% set prefix = 'extras__%d__' % loop.index0 %}
+      {{ form.custom(
+      names=(prefix ~ 'key', prefix ~ 'value', prefix ~ 'deleted'),
+      id='field-extras-%d' % loop.index,
+      label=_('Custom Field'),
+      values=(extra.key, extra.value, extra.deleted),
+      error=errors[prefix ~ 'key'] or errors[prefix ~ 'value']
+      ) }}
+    {% endif %}
+  {% endfor %}
+  {# Add a max of 3 empty columns #}
+  {% set total_extras = extras|count %}
+  {% set empty_extras = (limit or 3) - total_extras %}
+  {% if empty_extras <= 0 %}{% set empty_extras = 1 %}{% endif %}
+
+
+  {% for extra in range(total_extras , total_extras + empty_extras  )  %}
+
+    {% set index = loop.index0 + (extras|count)  %}
+    {% if index == 0 %}
+   {{ form.select(name='freq',id='freq', onchange='copyValue("freq","field-extras-0-value")', label=_('Frequency'), options=[{'name':extra['key'], 'value': extra['value']}, {'name':_('Year'), 'value': _('Year')},{'name': _('Month'), 'value': _('Month')},{'name':  _('Week'), 'value':  _('Week')},{'name':  _('Day'), 'value':  _('Day')},{'name':  _('Hour'), 'value':  _('Hour')}],   is_required=True) }}
+   <input id="field-extras-0-value" type="text" name="extras__0__value" value="" placeholder="" style="visibility:hidden"/>
+  {% elif index == 1 %}
+    {{ form.select(name='updateOption',id='updateOption', onchange='copyValue("updateOption","field-extras-1-value")', label=_('Update'), options=[{'name':extra['key'], 'value': extra['value']}, {'name':_('Manual'), 'value': _('Manual')},{'name': _('Automat'), 'value': _('Automat')}],   is_required=True) }}
+   <input id="field-extras-1-value" type="text" name="extras__1__value" value="" placeholder="" style="visibility:hidden"/>
+  {% else %}
+    {% set prefix = 'extras__%d__' % index %}
+    {{ form.custom(
+      names=(prefix ~ 'key', prefix ~ 'value', prefix ~ 'deleted'),
+      id='field-extras-%d' % index,
+      label=_('Custom Field'),
+      values=(extra.key, extra.value, extra.deleted),
+      error=errors[prefix ~ 'key'] or errors[prefix ~ 'value']
+    ) }}
+  {% endif %}
+  {% endfor %}
+</div>
