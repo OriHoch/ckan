@@ -21,6 +21,8 @@ class CustomHomePlugin(plugins.SingletonPlugin):
         map.connect('terms', '/terms',
                     controller=custom_home_controller,
                     action='terms')
-
+        map.connect('about', '/about',
+                    controller=custom_home_controller,
+                    action='about')
 
         return map

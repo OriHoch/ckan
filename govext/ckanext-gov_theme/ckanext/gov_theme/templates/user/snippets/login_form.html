@@ -15,6 +15,8 @@ Example:
 {% set password_error = true if error_summary %}
 
 <form action="{{ action }}" method="post" class="form-horizontal">
+
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   {{ form.errors(errors=error_summary) }}
 
   {{ form.input('login', label=_("Username"), id='field-login', value="", error=username_error, classes=["control-medium"]) }}

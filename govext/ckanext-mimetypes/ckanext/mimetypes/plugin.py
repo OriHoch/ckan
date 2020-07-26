@@ -14,4 +14,6 @@ class MimetypesPlugin(plugins.SingletonPlugin):
         toolkit.add_resource('fanstatic', 'mimetypes')
 
         mimetypes.add_type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', '.xlsx')
-        #mimetypes.add_type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'files/File.xlsx')
+        mimetypes.add_type('GEOJSON', '.geojson')
+        #mimetypes.add_type('WFS', '.wfs')
+        #mimetypes.add_type('WMS', 'wms')

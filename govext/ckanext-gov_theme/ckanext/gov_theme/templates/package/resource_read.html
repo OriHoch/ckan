@@ -4,7 +4,7 @@
   <ul>
     {% block resource_actions_inner %}
             {% if h.check_access('package_update', {'id':pkg.id }) %}
-              <li>{% link_for _('Manage'), controller='package', action='resource_edit', id=pkg.name, resource_id=res.id, class_='btn', icon='wrench' %}</li>
+              <li>{% link_for _('Manage'), controller='package', action='resource_edit', id=pkg.name, resource_id=res.id, class_='btn btn-primary', icon='wrench' %}</li>
             {% endif %}
             {% set current_lang = request.environ.CKAN_LANG %}
               <!--<li><a class="btn btn-primary" href="/{{ current_lang }}/report?form=link">{{ _('Broken link report') }}</a></li>-->
@@ -97,19 +97,16 @@
             <tbody>
               <tr>
                 <th scope="row">{{ _('Data last updated') }}</th>
-                <td>{{ h.render_datetime(res.last_modified) or h.render_datetime(res.created) or _('unknown') }}</td>
+                <td>{{ h.render_datetime(res.last_modified, None, True) or h.render_datetime(res.created,None, True) or _('unknown') }}</td>
               </tr>
-              <tr>
-                <th scope="row">{{ _('Metadata last updated') }}</th>
-                <td>{{ h.render_datetime(res.revision_timestamp) or h.render_datetime(res.created) or _('unknown') }}</td>
-              </tr>
+
               <tr>
                 <th scope="row">{{ _('Created') }}</th>
-                <td>{{ h.render_datetime(res.created) or _('unknown') }}</td>
+                <td>{{ h.render_datetime(res.created, None, True) or _('unknown') }}</td>
               </tr>
               <tr>
                 <th scope="row">{{ _('Format') }}</th>
-                <td>{{ res.mimetype_inner or res.mimetype or res.format or _('unknown') }}</td>
+                <td>{{  res.format or _('unknown') }}</td>
               </tr>
               <tr>
                 <th scope="row">{{ _('License') }}</th>

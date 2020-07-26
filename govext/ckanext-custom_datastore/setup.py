@@ -80,7 +80,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points='''
         [ckan.plugins]
-        custom_datastore=ckanext.custom_datastore.plugin:DatastorePlugin
+        custom_datastore=ckanext.custom_datastore.plugin:CustomDatastorePlugin
 
         [babel.extractors]
         ckan = ckan.lib.extract:extract_ckan

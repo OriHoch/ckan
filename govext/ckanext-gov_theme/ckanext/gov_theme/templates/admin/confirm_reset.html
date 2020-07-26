@@ -1,6 +1,4 @@
-{% extends "admin/base.html" %}
-
-{% block subtitle %}{{ _("Confirm Reset") }}{% endblock %}
+{% ckan_extends %}
 
 {% block primary_content_inner %}
   <form action="{% url_for controller='admin', action='reset_config' %}" method="post">

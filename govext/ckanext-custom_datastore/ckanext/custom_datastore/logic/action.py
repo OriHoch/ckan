@@ -21,7 +21,8 @@ log = logging.getLogger(__name__)
 _get_or_bust = logic.get_or_bust
 _validate = ckan.lib.navl.dictization_functions.validate
 
-WHITELISTED_RESOURCES = ['_table_metadata']
+#WHITELISTED_RESOURCES = ['_table_metadata']
+WHITELISTED_RESOURCES = []
 
 
 def datastore_create(context, data_dict):

@@ -13,8 +13,6 @@
 
             {{ form.input('name', label=_('Contact Name'), maxlength = 36, id='field-name', value=data.name, error=errors.name, classes=['control-medium'], is_required=true) }}
 
-	    {{ form.input('subject', label=_('Subject'), maxlength = 50, id='field-subject', value=data.subject, error=errors.subject, classes=['control-medium'], is_required=true) }}
-
             {{ form.input('email', label=_('Email'), id='field-email', type='email', value=data.email, error=errors.email, classes=['control-medium'], is_required=true) }}
 
             {{ form.markdown('content', label=_('Your Request'), maxlength = 500, id='field-content', value=data.content, error=errors.content, placeholder=_('What do you have to tell us?'), is_required=true) }}
@@ -41,7 +39,7 @@
 {% endblock %}
 
 {%- block scripts %}
- {% resource 'gov_theme/jquery-ui.js' %}
+ {% resource 'gov_theme/js/jquery-ui.js' %}
 
 
  {% endblock -%}

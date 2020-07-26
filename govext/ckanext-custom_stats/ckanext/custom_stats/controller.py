@@ -3,7 +3,7 @@ from ckan.lib.base import BaseController
 import ckan.logic as logic
 import ckan.model as model
 import ckan.lib.base as base
-from ckan.common import _
+from ckan.common import _, c
 import stats as stats_lib
 import logging
 import sys
@@ -153,6 +153,61 @@ def export_modified_resources_to_excel(c, stats):
         log.info("export_modified_resources_to_excel Error: " + ex.message)
         return None
 
+def export_org_resources_to_excel(c, stats):
+    try:
+        book = xlrd.Workbook(encoding="utf-8")
+        sheet1 = book.add_sheet('sheet1')
+
+        org_resources = stats.org_resources()
+
+        sheet1.write(0, 0, _('Organization'))
+        sheet1.write(0, 1, _('CSV'))
+        sheet1.write(0, 2, _('DOC'))
+        sheet1.write(0, 3, _('DOCX'))
+        sheet1.write(0, 4, _('GeoJSON'))
+        sheet1.write(0, 5, _('HTML'))
+        sheet1.write(0, 6, _('JPEG'))
+        sheet1.write(0, 7, _('JSON'))
+        sheet1.write(0, 8, _('PDF'))
+        sheet1.write(0, 9, _('PNG'))
+        sheet1.write(0, 10, _('PPT'))
+        sheet1.write(0, 11, _('PPTX'))
+        sheet1.write(0, 12, _('RSS'))
+        sheet1.write(0, 13, _('TXT'))
+        sheet1.write(0, 14, _('XLS'))
+        sheet1.write(0, 15, _('XLSX'))
+        sheet1.write(0, 16, _('XML'))
+        sheet1.write(0, 17, _('ZIP'))
+        for i, e in enumerate(org_resources):
+            sheet1.write(i + 1, 0, org_resources[i][0])
+            sheet1.write(i + 1, 1, org_resources[i][1])
+            sheet1.write(i + 1, 2, org_resources[i][2])
+            sheet1.write(i + 1, 3, org_resources[i][3])
+            sheet1.write(i + 1, 4, org_resources[i][4])
+            sheet1.write(i + 1, 5, org_resources[i][5])
+            sheet1.write(i + 1, 6, org_resources[i][6])
+            sheet1.write(i + 1, 7, org_resources[i][7])
+            sheet1.write(i + 1, 8, org_resources[i][8])
+            sheet1.write(i + 1, 9, org_resources[i][9])
+            sheet1.write(i + 1, 10, org_resources[i][10])
+            sheet1.write(i + 1, 11, org_resources[i][11])
+            sheet1.write(i + 1, 12, org_resources[i][12])
+            sheet1.write(i + 1, 13, org_resources[i][13])
+            sheet1.write(i + 1, 14, org_resources[i][14])
+            sheet1.write(i + 1, 15, org_resources[i][15])
+            sheet1.write(i + 1, 16, org_resources[i][16])
+            sheet1.write(i + 1, 17, org_resources[i][17])
+        name = config.get('org_resources_file')
+        full_path = path + name
+        c.path_to_org_resources_file = name
+        book.save(full_path)
+    except Exception as ex:
+        log.info("export_org_resources_to_excel - Error: " + ex.message)
+        return None
+
+def export_datapush_tasks_to_excel(c, stats):
+    pass
+
 class StatsController(BaseController):
 
     def index(self):
@@ -187,6 +242,12 @@ class StatsController(BaseController):
 
         c.modified_resources = stats.modified_resources()
         export_modified_resources_to_excel(c, stats)
+
+        c.org_resources = stats.org_resources()
+        export_org_resources_to_excel(c, stats)
+
+        c.datapusher_tasks = stats.datapusher_tasks()
+        export_datapush_tasks_to_excel(c, stats)
 
         c.raw_packages_by_week = []
         for week_date, num_packages, cumulative_num_packages in c.num_packages_by_week:

@@ -1,42 +1,34 @@
-{% ckan_extends %}
+{% resource 'gov_theme/css/custom-footer.css' %}
 
-<footer class="site-footer">
-    <div class="container">
-    {% block footer_content %}
-    <div class="row-fluid">
-      <div class="span12 footer-links">
+<footer>
+  {% block footer_content %}
+    <div class="footer-wrapper">
+      <div class="custom-footer-links">
         {% block footer_nav %}
-          <ul class="unstyled">
-                {% block footer_links_ckan %}
-                  {% set current_lang = request.environ.CKAN_LANG %}
-                  <!--<li class="pull-left"><a href="{{ h.url_for(controller='home', action='about') }}">{{ _('About Gvoernment Data').format(g.site_title) }}</a></li>-->
-                  <li class="pull-left"><a href="{{ h.url_for(controller='home', action='about') }}">{{ _('About').format(g.site_title) }}</a></li>
-                  <li class="pull-left"><a href="{{ h.url_for(controller='home', action='terms') }}">{{ _('Terms Of Use').format(g.site_title) }}</a></li>
-                  <li class="pull-left"><a href="{{ h.url_for(controller='home', action='contact') }}">{{ _('Contact').format(g.site_title) }}</a></li>
-                {% endblock %}
+          <ul class="list-unstyled">
+            {% block footer_links_ckan %}
+{#              {% set current_lang = request.environ.CKAN_LANG %}#}
+
+              <li class="col-xs-3 col-xs-offset-1 col-sm-3 col-sm-offset-2 col-md-2 col-md-offset-3">
+                <a href="{{ h.url_for(controller='home', action='contact') }}">{{ _('Contact').format(g.site_title) }}</a>
+              </li>
+              <li class="col-xs-4 col-sm-3 col-md-2">
+                <a href="{{ h.url_for(controller='home', action='terms') }}">{{ _('Terms Of Use').format(g.site_title) }}</a>
+              </li>
+              <li class="col-xs-3  col-sm-3  col-md-2 ">
+                <a href="{{ h.url_for(controller='home', action='about') }}">{{ _('About').format(g.site_title) }}</a>
+              </li>
+
+            {% endblock %}
           </ul>
         {% endblock %}
-
       </div>
-
-
     </div>
+  {% endblock %}
+
+   {% block footer_debug %}
+      {% if g.debug %}
+        {% include 'snippets/debug.html' %}
+      {% endif %}
     {% endblock %}
-  </div>
-
-
-
-
 </footer>
-
-
-
-
-
-
-
-
-
-
-
-

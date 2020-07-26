@@ -2,11 +2,11 @@
    these badges work. The necessary Travis and Coverage config files have been
    generated for you.
 
-.. image:: https://travis-ci.org//ckanext-customhome.svg?branch=master
-    :target: https://travis-ci.org//ckanext-customhome
+.. image:: https://travis-ci.org/michab23/ckanext-customhome.svg?branch=master
+    :target: https://travis-ci.org/michab23/ckanext-customhome
 
-.. image:: https://coveralls.io/repos//ckanext-customhome/badge.svg
-  :target: https://coveralls.io/r//ckanext-customhome
+.. image:: https://coveralls.io/repos/michab23/ckanext-customhome/badge.svg
+  :target: https://coveralls.io/r/michab23/ckanext-customhome
 
 .. image:: https://pypip.in/download/ckanext-customhome/badge.svg
     :target: https://pypi.python.org/pypi//ckanext-customhome/
@@ -90,7 +90,7 @@ Development Installation
 To install ckanext-customhome for development, activate your CKAN virtualenv and
 do::
 
-    git clone https://github.com//ckanext-customhome.git
+    git clone https://github.com/michab23/ckanext-customhome.git
     cd ckanext-customhome
     python setup.py develop
     pip install -r dev-requirements.txt

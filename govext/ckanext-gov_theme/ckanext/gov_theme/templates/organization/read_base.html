@@ -1,6 +1,5 @@
-{% extends "page.html" %}
+{% ckan_extends %}
 
-{% block subtitle %}{{ c.group_dict.display_name }} - {{ _('Organizations') }}{% endblock %}
 
 {% block breadcrumb_content %}
   <li>{% link_for _('Organizations'), controller='organization', action='index' %}</li>
@@ -24,9 +23,4 @@
 {% block secondary_content %}
   {% snippet 'snippets/organization.html', organization=c.group_dict, show_nums=true %}
   {% block organization_facets %}{% endblock %}
-{% endblock %}
-
-{% block links %}
-  {{ super() }}
-  {% include "organization/snippets/feeds.html" %}
 {% endblock %}

@@ -6,27 +6,32 @@
   {% block resource_item_title %}
   <a class="heading" href="{{ url }}" title="{{ res.name or res.description }}">
     {{ h.resource_display_name(res) | truncate(50) }}<span class="format-label" property="dc:format" data-format="{{ res.format.lower() or 'data' }}">{{ res.format }}</span>
-    {{ h.popular('views', res.tracking_summary.total, min=10) }}
+    {{ h.popular('views', h.gui_view_count(res['id']), min=10) }}
   </a>
-  <br/>
-
-  {% endblock %}
-  {% block resource_item_description %}
-    <p class="description">
+   <p class="description">
       {{ _('Last Updated Date') }}
       {{ h.render_datetime(res.last_modified) or h.render_datetime(res.revision_timestamp) or h.render_datetime(res.created) or _('unknown') }}
       {% if  h.api_usage_count(res['id']) > 0 %}
-        </br>({{ _('Download') }} : {{ h.api_usage_count(res['id']) }})
+        </br>{{ _('API Usage') }}: {{ h.api_usage_count(res['id']) }}
       {% endif %}
+      {% if  h.resource_download_count(res['id']) > 0 %}
+        </br>{{ _('Number Of Downloads') }}: {{ h.resource_download_count(res['id']) }}
+      {% endif %}
+
       <!--{% if res.description %}
         {{ h.markdown_extract(res.description, extract_length=80) }}
       {% endif %}-->
     </p>
+  <br/>
+
+  {% endblock %}
+  {% block resource_item_description %}
+
   {% endblock %}
   {% block resource_item_explore %}
   {% if not url_is_edit %}
   <div class="dropdown btn-group">
-    <a href="#" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+    <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
       <i class="icon-share-alt"></i>
       {{ _('Explore') }}
       <span class="caret"></span>
@@ -47,7 +52,7 @@
       {% if res.url %}
       <li>
         <!--fix for download relative link. original: <a href="{{ res.url }}" class="resource-url-analytics" target="_blank">-->
-        <a href="{{ h.url_for(controller='package', action='resource_download', id=pkg.name, resource_id=res.id) }}">
+        <a href="{{ h.url_for(controller='package', action='resource_download', id=pkg.name, resource_id=res.id, filename=res.name_from_url) }}">
           {% if res.has_views %}
             <i class="icon-download"></i>
             {{ _('Download') }}

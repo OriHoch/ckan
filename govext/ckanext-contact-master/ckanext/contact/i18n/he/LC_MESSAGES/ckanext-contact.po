@@ -159,7 +159,3 @@ msgstr "מה יש לך להגיד לנו?"
 msgid "Submit"
 msgstr "שלח"
 
-#: ckanext/contact/theme/templates/contact/snippets/form.html:25
-msgid "Subject"
-msgstr "נושא"
-

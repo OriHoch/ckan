@@ -83,32 +83,88 @@ def get_table_names_from_sql(context, sql):
 
     :rtype: list of strings
     '''
+    log.info("get_table_names_from_sql - start - HELPERS OLD")
 
     def _get_table_names_from_plan(plan):
 
+        log.info("_get_table_names_from_plan start")
         table_names = []
+        try:
+            if plan.get('Relation Name'):
+                table_names.append(plan['Relation Name'])
 
-        if plan.get('Relation Name'):
-            table_names.append(plan['Relation Name'])
-
-        if 'Plans' in plan:
-            for child_plan in plan['Plans']:
-                table_name = _get_table_names_from_plan(child_plan)
-                if table_name:
-                    table_names.extend(table_name)
-
+            if 'Plans' in plan:
+                for child_plan in plan['Plans']:
+                    table_name = _get_table_names_from_plan(child_plan)
+                    if table_name:
+                        table_names.extend(table_name)
+        except Exception, e:
+            log.error('_get_table_names_from_plan - ', e.message)
         return table_names
+
+    log.info("<SQL>")
+    log.info(sql)
+    log.info("</SQL>")
 
     result = context['connection'].execute(
         'EXPLAIN (FORMAT JSON) {0}'.format(sql.encode('utf-8'))).fetchone()
 
+    log.info("<RESULT>")
+    log.info(result)
+    log.info("</RESULT>")
+
     table_names = []
 
     try:
-        query_plan = json.loads(result['QUERY PLAN'])
-        plan = query_plan[0]['Plan']
 
+        log.info("<result['QUERY PLAN']>")
+        log.info(result['QUERY PLAN'])
+        log.info("</result['QUERY PLAN']>")
+
+        log.info("<query_plan parsing START>")
+
+        if isinstance(result['QUERY PLAN'], list):
+            log.info("LIST query plan")
+            result_query_plan = json.dumps(result['QUERY PLAN'])
+        #    result_query_plan_unicode = ''.join(map(str, result['QUERY PLAN']))
+        #    log.info("is result query plan str? ")
+        #    log.info(isinstance(result_query_plan_unicode, str))
+        #    log.info('unicode list query plan')
+        #    log.info(result_query_plan_unicode)
+        #    result_query_plan_decoded = result_query_plan_unicode.replace("u'", "'")
+        #    log.info('list query plan')
+        #    result_query_plan = result_query_plan_decoded.replace("False", "'False'")
+        #    log.info("the result_query_planis: ")
+        #    log.info(result_query_plan)
+        else:
+            log.info('STR query plan')
+            log.info("is result query plan str? ")
+            log.info(isinstance(result['QUERY PLAN'], str))
+            result_query_plan = result['QUERY PLAN']
+            log.info("the result_query_plan is: ")
+            log.info(result_query_plan)
+
+        log.info("*********** <query_plan> ************")
+        try:
+            query_plan = json.loads(result_query_plan)
+            log.info(query_plan)
+        except Exception, e:
+            log.error(e.message)
+            raise
+        log.info("</query_plan>")
+
+        log.info("<plan>")
+        plan = query_plan[0]['Plan']
+        log.info("<query_plan[0]['Plan']>")
+        log.info(plan)
+        log.info("</query_plan[0]['Plan']>")
+        log.info("</plan>")
+        log.info("</query_plan parsing FINISH>")
+
+        log.info("<table_names.extend>")
         table_names.extend(_get_table_names_from_plan(plan))
+        log.info(table_names)
+        log.info("</table_names.extend>")
 
     except ValueError:
         log.error('Could not parse query plan')

@@ -51,138 +51,11 @@ from pylons import request
 import pylons.config as config
 from ckan.common import request
 
-import socket
 import ckan.lib.base as base
 import ckan.logic as logic
 NotFound = logic.NotFound
 
-def parseBoolString(theString = 'False'):
-  return theString[0].upper()== 'T'
-
 class DatastoreController(ApiController):
-
-
-    def apiCheck(self, environ, start_response):
-        logger.info("apiCheck start: %s ", str(datetime.datetime.time(datetime.datetime.now())))
-        #return (self, environ, start_response)
-        #return base.BaseController.__call__(self, environ, start_response)
-        setWho = 'system'
-        path_info = environ['PATH_INFO'].split("/")
-        actionApi = path_info[-1]
-
-        logger.info("action api is: %s", actionApi)
-
-        ckan_site_local_url =  config.get('ckan.site_local_url')
-
-        remoteAddress = ""
-        try:
-            remoteAddress = toolkit.request.environ['REMOTE_ADDR']
-            ServerAddress = toolkit.request.environ['HTTP_HOST']
-        except:
-            remoteAddress = "No REMOTE_ADDR"
-
-        logger.info("ServerAddress = %s", ServerAddress)
-        logger.info("remoteAddress = %s", remoteAddress)
-
-        try:
-            backFlag = parseBoolString(config.get('ckan.gov_theme.is_back', False));
-        except:
-            backFlag = False
-
-        socket_check_by_ip = "access_denied"
-        try:
-            logger.info("BEFORE socket.gethostbyaddr: %s ", str(datetime.datetime.time(datetime.datetime.now())))
-            if remoteAddress ==  ckan_site_local_url:
-                logger.info("INTERNAL API REQUEST, the action is: %s", actionApi)
-                socketGetbyIP = socket.gethostbyaddr(remoteAddress)
-                socket_check_by_ip = socketGetbyIP[0]
-                logger.info("AFTER socket.gethostbyaddr: %s ", str(datetime.datetime.time(datetime.datetime.now())))
-            else:
-                socketGetbyIP = "denied"
-                socket_check_by_ip = socketGetbyIP
-                logger.info("socketGetbyIP = %s", socketGetbyIP)
-        except Exception, ex:
-            logger.error(ex.message)
-            logger.info("BEFORE socket.getfqdn: %s ", str(datetime.datetime.time(datetime.datetime.now())))
-            socketGetbyIP = socket.getfqdn()
-            socket_check_by_ip = socketGetbyIP
-            logger.info("AFTER socket.getfqdn: %s ", str(datetime.datetime.time(datetime.datetime.now())))
-
-
-        #logger.info("INapiCheck: RemoteAddress = " + remoteAddress + " ServerAddress= " + ServerAddress + " API: " + actionApi + " backFlag = " + str(backFlag) + " socketGetbyIP= " +  socketGetbyIP[0] )
-        logger.info("socketGetbyIP = %s", socketGetbyIP)
-        logger.info("socket_check_by_ip = %s", socket_check_by_ip)
-
-
-
-        if not backFlag:
-            logger.info("if not backFlag: %s", str(not backFlag))
-            if not socket_check_by_ip in ServerAddress:
-                logger.info("if not socket_check_by_ip in ServerAddress: %s", str(not socket_check_by_ip in ServerAddress))
-                if remoteAddress not in ServerAddress:
-                    logger.info("remoteAddress not in ServerAddress: %s", str(remoteAddress not in ServerAddress))
-                    setWho = 'user'
-                    logger.info("BEFORE if config.get(ckan.api.open, NotInList).find(actionApi) < 0: %s ", str(datetime.datetime.time(datetime.datetime.now())))
-                    if config.get('ckan.api.open', 'NotInList').find(actionApi) < 0:
-                        logger.info("AFTER if config.get(ckan.api.open, NotInList).find(actionApi) < 0: %s ", str(datetime.datetime.time(datetime.datetime.now())))
-                        return_dict = {}
-                        return_dict['error'] = {'__type': 'Authorization Error',
-                                                'message': _('Access denied')}
-                        return_dict['success'] = False
-                        logger.error(
-                            "Access denied RemoteAddress = " + remoteAddress + " ServerAddress= " + ServerAddress + " API: " + actionApi + " socket_check_by_ip = " + socket_check_by_ip)
-                        return self._finish(403, return_dict, content_type='json')
-        else:
-            setWho = 'Back'
-
-        try:
-            logger.info("BEFORE request_data = self._get_request_data(True): %s ", str(datetime.datetime.time(datetime.datetime.now())))
-            request_data = self._get_request_data(True)
-            logger.info("AFTER request_data = self._get_request_data(True): %s ",
-                        str(datetime.datetime.time(datetime.datetime.now())))
-        except Exception as e:
-            return_dict = {}
-            return_dict['success'] = False
-            return_dict['__type'] = 'Error'
-            return_dict['message'] = e.message
-            return self._finish(404, return_dict, content_type='json')
-
-
-        try:
-            helpStr = h.url_for(controller='api',
-                                action='action',
-                                logic_function='help_show',
-                                ver='3',
-                                name=actionApi,
-                                qualified=True, )
-            return_dict = {'help': helpStr}
-        except:
-            helpStr = ""
-
-        try:
-            logger.info("BEFORE members: %s ", str(datetime.datetime.time(datetime.datetime.now())))
-            #logger.warning("INapiCheck: About to run API: " + actionApi + "For sytem: " + setWho )
-            members = toolkit.get_action(actionApi)(context = environ , data_dict=request_data)
-            #logger.info("Run api successfuly " )
-            logger.info("AFTER members: %s ", str(datetime.datetime.time(datetime.datetime.now())))
-            return_dict['success'] = True
-            return_dict['result'] =  members
-            return self._finish_ok(return_dict)
-
-
-        except Exception as e:
-            logger.debug("INapiCheck API: " + actionApi + "For sytem: " + setWho )
-            return_dict['success'] = False
-            return_dict['__type'] = 'Error'
-            try:
-                return_dict['message'] = e.error_dict
-            except:
-                return_dict['message'] = e.message
-                #return json.dumps({'help': helpStr, 'success': False,  'msg': e.error_dict  })
-            return self._finish(404, return_dict, content_type='json')
-                #return json.dumps({'help': helpStr, 'success': False, 'msg': e.message})
-
-
 
     def dump(self, resource_id):
         try:
@@ -246,7 +119,7 @@ class DatastoreController(ApiController):
                     } for f, fi in izip_longest(fields, info)]})
 
             h.redirect_to(
-                controller='ckanext.datastore.controller:DatastoreController',
+                controller='ckanext.custom_datastore.controller:DatastoreController',
                 action='dictionary',
                 id=id,
                 resource_id=resource_id)

@@ -25,7 +25,7 @@ import ckan.lib.plugins as lib_plugins
 import ckan.plugins as plugins
 
 from ckanext.gov_theme import file_validators
-from ckanext.gov_theme import custom_uploader
+#from ckanext.gov_theme import custom_uploader
 
 log = logging.getLogger(__name__)
 
@@ -335,8 +335,8 @@ def resource_create(context, data_dict):
     if 'resources' not in pkg_dict:
         pkg_dict['resources'] = []
 
-    #upload = _create.uploader.get_resource_uploader(data_dict)
-    upload = custom_uploader.get_resource_uploader(data_dict)
+    upload = _create.uploader.get_resource_uploader(data_dict)
+    #upload = custom_uploader.get_resource_uploader(data_dict)
 
     if 'mimetype' not in data_dict:
         if hasattr(upload, 'mimetype'):
@@ -361,9 +361,9 @@ def resource_create(context, data_dict):
 
     # Get out resource_id resource from model as it will not appear in
     # package_show until after commit
-    #upload.upload(context['package'].resources[-1].id,
-    #              _create.uploader.get_max_resource_size())
-    upload.upload(context['package'].resources[-1].id, custom_uploader.get_max_resource_size())
+    upload.upload(context['package'].resources[-1].id,
+                  _create.uploader.get_max_resource_size())
+    #upload.upload(context['package'].resources[-1].id, custom_uploader.get_max_resource_size())
     model.repo.commit()
 
     #  Run package show again to get out actual last_resource
@@ -758,7 +758,10 @@ def resource_update(context, data_dict):
 
     resource = model.Resource.get(id)
     context["resource"] = resource
-    old_resource_format = resource.format
+    try:
+        old_resource_format = resource.format
+    except:
+        None
 
     if not resource:
         log.debug('Could not find resource %s', id)
@@ -786,8 +789,8 @@ def resource_update(context, data_dict):
     for plugin in _update.plugins.PluginImplementations(_update.plugins.IResourceController):
         plugin.before_update(context, pkg_dict['resources'][n], data_dict)
 
-    #upload = _update.uploader.get_resource_uploader(data_dict)
-    upload = custom_uploader.get_resource_uploader(data_dict)
+    upload = _update.uploader.get_resource_uploader(data_dict)
+    #upload = custom_uploader.get_resource_uploader(data_dict)
 
     if 'mimetype' not in data_dict:
         if hasattr(upload, 'mimetype'):
@@ -810,8 +813,8 @@ def resource_update(context, data_dict):
         except (KeyError, IndexError):
             raise ValidationError(e.error_dict)
 
-    #upload.upload(id, _update.uploader.get_max_resource_size())
-    upload.upload(id, custom_uploader.get_max_resource_size())
+    upload.upload(id, _update.uploader.get_max_resource_size())
+    #upload.upload(id, custom_uploader.get_max_resource_size())
     model.repo.commit()
 
     resource = _get_action('resource_show')(context, {'id': id})

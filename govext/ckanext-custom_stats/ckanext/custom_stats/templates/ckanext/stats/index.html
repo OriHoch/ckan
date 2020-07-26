@@ -196,6 +196,64 @@
       </table>
     </section>
 
+    <section id="datapusher-tasks" class="module-content tab-content">
+      <!--<h2>{{ _('Datapusher Tasks') }} <a target="_blank" class="btn btn-primary resource-url-analytics" href="{{ c.path_to_datapusher_tasks_file }}">{{ _('Export to Excel') }}</a> </h2>-->
+      <table class="table table-chunky table-bordered table-striped">
+        <thead>
+          <tr>
+            <th> {{ _('Resource') }} </th>
+            <th> {{ _('State') }} </th>
+            <th> {{ _('Error') }} </th>
+            <th> {{ _('Last Modified') }} </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for resource in c.datapusher_tasks %}
+            <tr>
+              <td> {{ h.link_to(resource[0], h.url_for(controller='package', action='resource_read',
+                        id=resource[6], resource_id=resource[0])) }} </td>
+              <td>{{ resource[2] }}</td>
+              <td>{{ resource[3] }}</td>
+              <td>{{ resource[4] }}</td>
+
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section id="org_resources" class="module-content tab-content">
+      <h2>{{ _('Resources by Organization') }} <a target="_blank" class="btn btn-primary resource-url-analytics" href="{{ c.path_to_org_resources_file }}">{{ _('Export to Excel') }}</a> </h2>
+      <table class="table table-chunky table-bordered table-striped">
+        <thead>
+          <tr>
+            <th> {{ _('Organization') }} </th>
+            <th> {{ _('CSV') }} </th>
+            <th> {{ _('JSON') }} </th>
+            <th> {{ _('PDF') }} </th>
+            <th> {{ _('XLS') }} </th>
+            <th> {{ _('XLSX') }} </th>
+            <th> {{ _('XML') }} </th>
+
+          </tr>
+        </thead>
+        <tbody>
+          {% for resource in c.org_resources %}
+            <tr>
+              <td>{{ resource[0] }}</td>
+              <td>{{ resource[1] if resource[1]}}</td>
+              <td>{{ resource[7] if resource[7] }}</td>
+              <td>{{ resource[8] if resource[8] }}</td>
+              <td>{{ resource[14] if resource[14] }}</td>
+              <td>{{ resource[15] if resource[15] }}</td>
+              <td>{{ resource[16] if resource[16] }}</td>
+
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
   </article>
 {% endblock %}
 
@@ -212,6 +270,8 @@
         <li class="nav-item"><a href="#stats-top-tags" data-toggle="tab">{{ _('Top Tags') }}</a></li>
         <li class="nav-item"><a href="#stats-most-create" data-toggle="tab">{{ _('Users Creating Most Datasets') }}</a></li>
         <li class="nav-item"><a href="#modified-resources" data-toggle="tab">{{ _('Modified Resources') }}</a></li>
+        <li class="nav-item"><a href="#datapusher-tasks" data-toggle="tab">{{ _('Datapusher Tasks') }}</a></li>
+        <li class="nav-item"><a href="#org_resources" data-toggle="tab">{{ _('Resources by Organization') }}</a></li>
       </ul>
     </nav>
   </section>
@@ -224,6 +284,6 @@ Hellish hack to get excanvas to work in IE8. We disable html5shiv from
 overriding the createElement() method on this page.
 See: http://stackoverflow.com/questions/10208062/using-flot-with-bootstrap-ie8-incompatibility
 #}
-{% resource "vendor/block_html5_shim" %}
+
 {% resource "ckanext_stats/stats" %}
 {% endblock %}

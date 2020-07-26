@@ -21,11 +21,11 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com//ckanext-customhome',
+    url='https://github.com/michab23/ckanext-customhome',
 
     # Author details
-    author='''michaelb''',
-    author_email='''michaelb@gov.il''',
+    author='''michael''',
+    author_email='''*****@*****''',
 
     # Choose your license
     license='AGPL',

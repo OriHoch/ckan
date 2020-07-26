@@ -27,6 +27,8 @@ from ckan.common import OrderedDict, _, json, request, c, response
 from ckan.controllers.home import CACHE_PARAMETERS
 import ckanext.gov_theme.base as custom_base
 
+import ckanext.custom_google_analytics.helpers as analytics_helpers
+
 log = logging.getLogger(__name__)
 
 render = base.render
@@ -43,6 +45,7 @@ parse_params = logic.parse_params
 flatten_to_string_key = logic.flatten_to_string_key
 
 lookup_package_plugin = ckan.lib.plugins.lookup_package_plugin
+
 
 def _encode_params(params):
     return [(k, v.encode('utf-8') if isinstance(v, basestring) else str(v))
@@ -65,7 +68,9 @@ def search_url(params, package_type=None):
 class CustomPackageController(package.PackageController):
 
     def search(self):
-        custom_base.g_analitics()
+        # custom_base.g_analitics()
+        analytics_helpers.reset_analytics_code()
+
         from ckan.lib.search import SearchError, SearchQueryError
 
         package_type = self._guess_package_type()
@@ -123,7 +128,8 @@ class CustomPackageController(package.PackageController):
 
         c.sort_by = _sort_by
         if not sort_by:
-            c.sort_by_fields = []
+            c.sort_by_fields = [('metadata_created', 'desc')]
+            sort_by = "metadata_created desc"
         else:
             c.sort_by_fields = [field.split()[0]
                                 for field in sort_by.split(',')]
@@ -144,7 +150,7 @@ class CustomPackageController(package.PackageController):
             fq = ''
             for (param, value) in request.params.items():
                 if param not in ['q', 'page', 'sort'] \
-                        and len(value) and not param.startswith('_'):
+                    and len(value) and not param.startswith('_'):
                     if not param.startswith('ext_'):
                         c.fields.append((param, value))
                         fq += ' %s:"%s"' % (param, value)
@@ -166,7 +172,7 @@ class CustomPackageController(package.PackageController):
                 # Unless changed via config options, don't show non standard
                 # dataset types on the default search page
                 if not asbool(
-                        config.get('ckan.search.show_all_types', 'False')):
+                    config.get('ckan.search.show_all_types', 'False')):
                     fq += ' +dataset_type:dataset'
 
             facets = OrderedDict()
@@ -177,7 +183,7 @@ class CustomPackageController(package.PackageController):
                 'tags': _('Tags'),
                 'res_format': _('Formats'),
                 'license_id': _('Licenses'),
-                }
+            }
 
             for facet in h.facets():
                 if facet in default_facet_titles:
@@ -204,7 +210,7 @@ class CustomPackageController(package.PackageController):
             }
 
             query = get_action('package_search')(context, data_dict)
-            c.sort_by_selected = query['sort']
+            c.sort_by_selected = sort_by
 
             c.page = h.Page(
                 collection=query['results'],
@@ -234,11 +240,11 @@ class CustomPackageController(package.PackageController):
         for facet in c.search_facets.keys():
             try:
                 limit = int(request.params.get('_%s_limit' % facet,
-                            int(config.get('search.facets.default', 10))))
+                                               int(config.get('search.facets.default', 10))))
             except ValueError:
                 abort(400, _('Parameter "{parameter_name}" is not '
                              'an integer').format(
-                      parameter_name='_%s_limit' % facet))
+                    parameter_name='_%s_limit' % facet))
             c.search_facets_limits[facet] = limit
 
         self._setup_template_variables(context, {},
@@ -248,7 +254,7 @@ class CustomPackageController(package.PackageController):
                       extra_vars={'dataset_type': package_type})
 
     def read(self, id):
-        custom_base.g_analitics()
+        # custom_base.g_analitics()
         context = {'model': model, 'session': model.Session,
                    'user': c.user, 'for_view': True,
                    'auth_user_obj': c.userobj}
@@ -291,6 +297,7 @@ class CustomPackageController(package.PackageController):
             resource_views = get_action('resource_view_list')(
                 context, {'id': resource['id']})
             resource['has_views'] = len(resource_views) > 0
+            resource['name_from_url'] = str(resource['url']).split("/")[str(resource['url']).split("/").__len__() - 1]
 
         package_type = c.pkg_dict['type'] or 'dataset'
         self._setup_template_variables(context, {'id': id},
@@ -298,6 +305,9 @@ class CustomPackageController(package.PackageController):
 
         template = self._read_template(package_type)
         try:
+
+            analytics_helpers.update_analytics_code_by_organization(c.pkg_dict['organization']['id'])
+
             return render(template,
                           extra_vars={'dataset_type': package_type})
         except ckan.lib.render.TemplateNotFound as e:
@@ -330,7 +340,7 @@ class CustomPackageController(package.PackageController):
             abort(401, _('Unauthorized to create a package'))
 
         if context['save'] and not data:
-            #check against csrf attacks
+            # check against csrf attacks
             custom_base.csrf_check(self)
             return self._save_new(context, package_type=package_type)
 
@@ -353,7 +363,7 @@ class CustomPackageController(package.PackageController):
         # if we are creating from a group then this allows the group to be
         # set automatically
         data['group_id'] = request.params.get('group') or \
-            request.params.get('groups__0__id')
+                           request.params.get('groups__0__id')
 
         form_snippet = self._package_form(package_type=package_type)
         form_vars = {'data': data, 'errors': errors,
@@ -367,7 +377,7 @@ class CustomPackageController(package.PackageController):
                                        package_type=package_type)
 
         new_template = self._new_template(package_type)
-        #c.form = ckan.lib.render.deprecated_lazy_render(
+        # c.form = ckan.lib.render.deprecated_lazy_render(
         #    new_template,
         #    form_snippet,
         #    lambda: render(form_snippet, extra_vars=form_vars),
@@ -382,7 +392,7 @@ class CustomPackageController(package.PackageController):
 
     def resource_read(self, id, resource_id):
 
-        custom_base.g_analitics()
+        # custom_base.g_analitics()
 
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author,
@@ -429,18 +439,17 @@ class CustomPackageController(package.PackageController):
         # get package license info
         license_id = c.package.get('license_id')
         try:
-            c.package['isopen'] = model.Package.\
+            c.package['isopen'] = model.Package. \
                 get_license_register()[license_id].isopen()
         except KeyError:
             c.package['isopen'] = False
 
         # TODO: find a nicer way of doing this
         c.datastore_api = '%s/api/action' % \
-            config.get('ckan.site_url', '').rstrip('/')
+                          config.get('ckan.site_url', '').rstrip('/')
 
-        #deprecated
-        #c.related_count = c.pkg.related_count
-
+        # deprecated
+        # c.related_count = c.pkg.related_count
 
         c.resource['can_be_previewed'] = self._resource_preview(
             {'resource': c.resource, 'package': c.package})
@@ -468,12 +477,14 @@ class CustomPackageController(package.PackageController):
                 'current_resource_view': current_resource_view,
                 'dataset_type': dataset_type}
 
+        analytics_helpers.update_analytics_code_by_organization(c.pkg_dict['organization']['id'])
+
         template = self._resource_template(dataset_type)
         return render(template, extra_vars=vars)
 
     def resource_download(self, id, resource_id, filename=None):
 
-        custom_base.g_analitics()
+        # custom_base.g_analitics()
 
         """
         Provides a direct download by either redirecting the user to the url
@@ -484,20 +495,25 @@ class CustomPackageController(package.PackageController):
 
         try:
             rsc = get_action('resource_show')(context, {'id': resource_id})
-            get_action('package_show')(context, {'id': id})
             # removes the host to make it relative
             if config.get('ckan.upload_file_url'):
                 url = rsc['url']
                 if config.get('ckan.upload_file_url') in url:
                     url = url.split(config.get('ckan.upload_file_url'))
                     rsc['url'] = url[1]
-                    #c.resource['url'] = rsc['url']
+                    # c.resource['url'] = rsc['url']
 
         except NotFound:
             abort(404, _('Resource not found'))
         except NotAuthorized:
             abort(401, _('Unauthorized to read resource %s') % id)
 
+        # analytics section
+        pack_dict = get_action('package_show')(context, {'id': id})
+        analytics_helpers.update_analytics_code_by_organization(pack_dict['organization']['id'])
+        analytics_helpers.send_analytic_event_server_side(
+            u'{}~{}'.format(pack_dict.get('organization').get('title'), u'Resource_Download'),
+            pack_dict.get('title'), rsc.get('name'))
 
         if rsc.get('url_type') == 'upload':
             upload = uploader.ResourceUpload(rsc)
@@ -534,7 +550,7 @@ class CustomPackageController(package.PackageController):
 
         try:
             if request.method == 'POST':
-                #check against csrf attacks
+                # check against csrf attacks
                 custom_base.csrf_check(self)
                 get_action('resource_delete')(context, {'id': resource_id})
                 h.flash_notice(_('Resource has been deleted.'))
@@ -559,7 +575,7 @@ class CustomPackageController(package.PackageController):
 
         try:
             if request.method == 'POST':
-                #check against csrf attacks
+                # check against csrf attacks
                 custom_base.csrf_check(self)
                 get_action('package_delete')(context, {'id': id})
                 h.flash_notice(_('Dataset has been deleted.'))
@@ -575,7 +591,7 @@ class CustomPackageController(package.PackageController):
 
     def edit(self, id, data=None, errors=None, error_summary=None):
 
-        custom_base.g_analitics()
+        # custom_base.g_analitics()
 
         package_type = self._get_package_type(id)
         context = {'model': model, 'session': model.Session,
@@ -583,7 +599,7 @@ class CustomPackageController(package.PackageController):
                    'save': 'save' in request.params}
 
         if context['save'] and not data:
-            #check against csrf attacks
+            # check against csrf attacks
             custom_base.csrf_check(self)
             return self._save_edit(id, context, package_type=package_type)
         try:
@@ -599,6 +615,9 @@ class CustomPackageController(package.PackageController):
             abort(401, _('Unauthorized to read package %s') % '')
         except NotFound:
             abort(404, _('Dataset not found'))
+
+        analytics_helpers.update_analytics_code_by_organization(c.pkg_dict['organization']['id'])
+
         # are we doing a multiphase add?
         if data.get('state', '').startswith('draft'):
             c.form_action = h.url_for(controller='package', action='new')
@@ -627,8 +646,8 @@ class CustomPackageController(package.PackageController):
 
         self._setup_template_variables(context, {'id': id},
                                        package_type=package_type)
-        #deprecated
-        #c.related_count = c.pkg.related_count
+        # deprecated
+        # c.related_count = c.pkg.related_count
 
         # we have already completed stage 1
         form_vars['stage'] = ['active']
@@ -636,7 +655,7 @@ class CustomPackageController(package.PackageController):
             form_vars['stage'] = ['active', 'complete']
 
         edit_template = self._edit_template(package_type)
-        #c.form = ckan.lib.render.deprecated_lazy_render(
+        # c.form = ckan.lib.render.deprecated_lazy_render(
         #    edit_template,
         #    form_snippet,
         #    lambda: render(form_snippet, extra_vars=form_vars),
@@ -651,17 +670,17 @@ class CustomPackageController(package.PackageController):
 
     def new_resource(self, id, data=None, errors=None, error_summary=None):
 
-        custom_base.g_analitics()
+        # custom_base.g_analitics()
 
         ''' FIXME: This is a temporary action to allow styling of the
         forms. '''
         if request.method == 'POST' and not data:
-            #check against csrf attacks
+            # check against csrf attacks
             custom_base.csrf_check(self)
             save_action = request.params.get('save')
             data = data or \
-                clean_dict(dict_fns.unflatten(tuplize_dict(parse_params(
-                                                           request.POST))))
+                   clean_dict(dict_fns.unflatten(tuplize_dict(parse_params(
+                       request.POST))))
             # we don't want to include save as it is part of the form
             del data['save']
             resource_id = data['id']
@@ -674,7 +693,9 @@ class CustomPackageController(package.PackageController):
             data_provided = False
             for key, value in data.iteritems():
                 if ((value or isinstance(value, cgi.FieldStorage))
-                        and key != 'resource_type'):
+                    and key not in (
+                        'resource_type', 'spatial_coverage', 'geodetic', 'Language', 'reference_number', 'demarcation',
+                        '_authentication_token', 'is_geographic')):
                     data_provided = True
                     break
 
@@ -690,24 +711,27 @@ class CustomPackageController(package.PackageController):
                 except NotFound:
                     abort(404, _('The dataset {id} could not be found.'
                                  ).format(id=id))
-                if not len(data_dict['resources']):
-                    # no data so keep on page
-                    msg = _('You must add at least one data resource')
-                    # On new templates do not use flash message
-                    if g.legacy_templates:
-                        h.flash_error(msg)
-                        h.redirect_to(controller='package',
-                                      action='new_resource', id=id)
-                    else:
-                        errors = {}
-                        error_summary = {_('Error'): msg}
-                        return self.new_resource(id, data, errors,
-                                                 error_summary)
+                # if not len(data_dict['resources']):
+                #    # no data so keep on page
+                #    msg = _('You must add at least one data resource')
+                #    # On new templates do not use flash message
+                #    if g.legacy_templates:
+                #        h.flash_error(msg)
+                #        h.redirect_to(controller='package',
+                #                      action='new_resource', id=id)
+                #    else:
+                #        errors = {}
+                #        error_summary = {_('Error'): msg}
+                #        return self.new_resource(id, data, errors,
+                #                                error_summary)
                 # XXX race condition if another user edits/deletes
                 data_dict = get_action('package_show')(context, {'id': id})
                 get_action('package_update')(
                     dict(context, allow_state_change=True),
                     dict(data_dict, state='active'))
+
+                analytics_helpers.update_analytics_code_by_organization(data_dict['organization']['id'])
+
                 h.redirect_to(controller='package', action='read', id=id)
 
             data['package_id'] = id
@@ -733,19 +757,19 @@ class CustomPackageController(package.PackageController):
                     dict(context, allow_state_change=True),
                     dict(data_dict, state='active'))
                 h.redirect_to(h.url_for(controller='package',
-                                   action='read', id=id))
+                                        action='read', id=id))
             elif save_action == 'go-dataset':
                 # go to first stage of add dataset
                 h.redirect_to(h.url_for(controller='package',
-                                   action='edit', id=id))
+                                        action='edit', id=id))
             elif save_action == 'go-dataset-complete':
                 # go to first stage of add dataset
                 h.redirect_to(h.url_for(controller='package',
-                                   action='read', id=id))
+                                        action='read', id=id))
             else:
                 # add more resources
                 h.redirect_to(h.url_for(controller='package',
-                                   action='new_resource', id=id))
+                                        action='new_resource', id=id))
 
         # get resources for sidebar
         context = {'model': model, 'session': model.Session,
@@ -780,14 +804,14 @@ class CustomPackageController(package.PackageController):
     def resource_edit(self, id, resource_id, data=None, errors=None,
                       error_summary=None):
 
-        custom_base.g_analitics()
+        # custom_base.g_analitics()
 
         if request.method == 'POST' and not data:
-            #check against csrf attacks
+            # check against csrf attacks
             custom_base.csrf_check(self)
             data = data or \
-                clean_dict(dict_fns.unflatten(tuplize_dict(parse_params(
-                                                           request.POST))))
+                   clean_dict(dict_fns.unflatten(tuplize_dict(parse_params(
+                       request.POST))))
             # we don't want to include save as it is part of the form
             del data['save']
 
@@ -810,7 +834,7 @@ class CustomPackageController(package.PackageController):
             except NotAuthorized:
                 abort(401, _('Unauthorized to edit this resource'))
             h.redirect_to(h.url_for(controller='package', action='resource_read',
-                               id=id, resource_id=resource_id))
+                                    id=id, resource_id=resource_id))
 
         context = {'model': model, 'session': model.Session,
                    'api_version': 3, 'for_edit': True,
@@ -836,10 +860,10 @@ class CustomPackageController(package.PackageController):
         c.resource = resource_dict
 
         if config.get('ckan.upload_file_url'):
-                url = c.resource['url']
-                if config.get('ckan.upload_file_url') in url:
-                    url = url.split(config.get('ckan.upload_file_url'))
-                    c.resource['url'] = url[1]
+            url = c.resource['url']
+            if config.get('ckan.upload_file_url') in url:
+                url = url.split(config.get('ckan.upload_file_url'))
+                c.resource['url'] = url[1]
 
         # set the form action
         c.form_action = h.url_for(controller='package',
@@ -857,6 +881,9 @@ class CustomPackageController(package.PackageController):
                 'error_summary': error_summary, 'action': 'new',
                 'resource_form_snippet': self._resource_form(package_type),
                 'dataset_type': package_type}
+
+        analytics_helpers.update_analytics_code_by_organization(pkg_dict['organization']['id'])
+
         return render('package/resource_edit.html', extra_vars=vars)
 
     def resource_embedded_dataviewer(self, id, resource_id,
@@ -983,7 +1010,7 @@ class CustomPackageController(package.PackageController):
         to_preview = False
 
         if request.method == 'POST':
-            #check against csrf attacks
+            # check against csrf attacks
             custom_base.csrf_check(self)
             request.POST.pop('save', None)
             to_preview = request.POST.pop('preview', False)
@@ -1015,8 +1042,8 @@ class CustomPackageController(package.PackageController):
             else:
                 if not to_preview:
                     h.redirect_to(h.url_for(controller='package',
-                                       action='resource_views',
-                                       id=id, resource_id=resource_id))
+                                            action='resource_views',
+                                            id=id, resource_id=resource_id))
 
         ## view_id exists only when updating
         if view_id:
@@ -1066,7 +1093,7 @@ class CustomPackageController(package.PackageController):
 
     def resource_view(self, id, resource_id, view_id=None):
 
-        custom_base.g_analitics()
+        # custom_base.g_analitics()
 
         '''
         Embedded page for a resource view.
@@ -1125,6 +1152,8 @@ class CustomPackageController(package.PackageController):
         if not view or not isinstance(view, dict):
             abort(404, _('Resource view not supplied'))
 
+        analytics_helpers.update_analytics_code_by_organization(package['organization']['id'])
+
         return h.rendered_resource_view(view, resource, package, embed=True)
 
     def resource_datapreview(self, id, resource_id):
@@ -1153,7 +1182,6 @@ class CustomPackageController(package.PackageController):
                     url = url.split(config.get('ckan.upload_file_url'))
                     c.resource['url'] = url[1]
 
-
             c.package = get_action('package_show')(context, {'id': id})
 
             data_dict = {'resource': c.resource, 'package': c.package}
@@ -1173,7 +1201,3 @@ class CustomPackageController(package.PackageController):
         else:
             return render(preview_plugin.preview_template(context, data_dict),
                           extra_vars={'dataset_type': dataset_type})
-
-
-
-

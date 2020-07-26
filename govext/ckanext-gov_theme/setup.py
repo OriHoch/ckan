@@ -24,8 +24,8 @@ setup(
     url='https://github.com/"ckan"/ckanext-gov_theme',
 
     # Author details
-    author='''"Felix Schiffman"''',
-    author_email='''"felix@gov.il"''',
+    author='''"Felix"''',
+    author_email='''"*****@*****"''',
 
     # Choose your license
     license='AGPL',

@@ -3,7 +3,6 @@ import ckan.lib.base as base
 import ckan.plugins as p
 import ckan.logic as logic
 import ckan.model as model
-import ckanext.gov_theme.captcha as captcha
 import ckan.lib.navl.dictization_functions as dictization_functions
 import ckan.lib.mailer as mailer
 import ckanext.gov_theme.mailer as custom_mailer
@@ -12,6 +11,7 @@ import socket
 from pylons import config
 from ckan.common import _, request, c, response
 from ckanext.contact.interfaces import IContact
+import ckanext.gov_theme.captcha as captcha
 
 
 log = logging.getLogger(__name__)
@@ -58,15 +58,14 @@ class ContactController(base.BaseController):
             data_dict = logic.clean_dict(unflatten(logic.tuplize_dict(logic.parse_params(request.params))))
             context['message'] = data_dict.get('log_message', '')
             c.form = data_dict['name']
-            if not (captcha.check_recaptcha(request)):
-                raise captcha.CaptchaError
+            if (config.get('ckan.recaptcha.is_enabled')) == "True":
+                if not (captcha.check_recaptcha(request)):
+                    raise captcha.CaptchaError
         except logic.NotAuthorized:
             base.abort(401, _('Not authorized to see this page'))
         except captcha.CaptchaError:
             errors['captcha'] = [_(u'Bad Captcha. Please try again.')]
             error_summary[_('captcha')] = _(u'Bad Captcha. Please try again.')
-
-
 
         if data_dict["email"] == '':
             errors['email'] = [_(u'Missing value')]
@@ -75,10 +74,6 @@ class ContactController(base.BaseController):
         if data_dict["name"] == '':
             errors['name'] = [_(u'Missing value')]
             error_summary[_('Contact Name')] = _(u'Missing value')
-
-        if data_dict["subject"] == '':
-            errors['subject'] = [_(u'Missing value')]
-            error_summary[_('Subject')] = _(u'Missing value')
 
         if data_dict["content"] == '':
             errors['content'] = [_(u'Missing value')]
@@ -96,7 +91,6 @@ class ContactController(base.BaseController):
             body = _('Hello')+","
             body += '\n'+body_title
             body += '\n'+_(u'First name and surname')+":"+data_dict["name"]
-	    body += '\n' + _(u'Subject') + ":" + data_dict["subject"]
             body += '\n'+_(u'Email')+":"+data_dict["email"]
             if c.contact_title == _('Data Request'):
                 body += '\n' + _(u'organization_name') + ':' + data_dict["organizations"]

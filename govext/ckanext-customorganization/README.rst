@@ -2,11 +2,11 @@
    these badges work. The necessary Travis and Coverage config files have been
    generated for you.
 
-.. image:: https://travis-ci.org//ckanext-customorganization.svg?branch=master
-    :target: https://travis-ci.org//ckanext-customorganization
+.. image:: https://travis-ci.org/michab23/ckanext-customorganization.svg?branch=master
+    :target: https://travis-ci.org/michab23/ckanext-customorganization
 
-.. image:: https://coveralls.io/repos//ckanext-customorganization/badge.svg
-  :target: https://coveralls.io/r//ckanext-customorganization
+.. image:: https://coveralls.io/repos/michab23/ckanext-customorganization/badge.svg
+  :target: https://coveralls.io/r/michab23/ckanext-customorganization
 
 .. image:: https://pypip.in/download/ckanext-customorganization/badge.svg
     :target: https://pypi.python.org/pypi//ckanext-customorganization/
@@ -90,7 +90,7 @@ Development Installation
 To install ckanext-customorganization for development, activate your CKAN virtualenv and
 do::
 
-    git clone https://github.com//ckanext-customorganization.git
+    git clone https://github.com/michab23/ckanext-customorganization.git
     cd ckanext-customorganization
     python setup.py develop
     pip install -r dev-requirements.txt

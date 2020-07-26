@@ -66,8 +66,7 @@ class CustomUserController(user.UserController):
         #     abort(401, _('Unauthorized to create a user'))
 
         if context['save'] and not data:
-            #check against csrf attacks
-            custom_base.csrf_check(self)
+            #custom_base.csrf_check(self)
             return self._save_new(context)
 
         # if c.user and not data:
@@ -92,8 +91,7 @@ class CustomUserController(user.UserController):
         data_dict = {'id': id}
 
         try:
-            #check against csrf attacks
-            custom_base.csrf_check(self)
+            #custom_base.csrf_check(self)
             get_action('user_delete')(context, data_dict)
             user_index = h.url_for(controller='user', action='index')
             h.redirect_to(user_index)
@@ -120,8 +118,7 @@ class CustomUserController(user.UserController):
             abort(401, _('Unauthorized to edit a user.'))
 
         if (context['save']) and not data:
-            #check against csrf attacks
-            custom_base.csrf_check(self)
+            #custom_base.csrf_check(self)
             return self._save_edit(id, context)
 
         try:

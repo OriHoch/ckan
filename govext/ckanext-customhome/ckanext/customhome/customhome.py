@@ -62,4 +62,5 @@ class CustomHomeController(home.HomeController):
     def terms(self):
         return base.render('home/terms.html')
 
-
+    def about(self):
+        return base.render('home/about.html')

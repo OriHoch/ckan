@@ -31,7 +31,7 @@ ValidationError = p.toolkit.ValidationError
 #from ckan.plugins import IPackageController
 #from ckan.plugins import implements
 
-class DatastorePlugin(p.SingletonPlugin):
+class CustomDatastorePlugin(p.SingletonPlugin):
 #    implements(IPackageController, inherit=True)
     p.implements(p.IConfigurable, inherit=True)
     p.implements(p.IConfigurer)
@@ -165,31 +165,6 @@ class DatastorePlugin(p.SingletonPlugin):
             'resource_dictionary', '/dataset/{id}/dictionary/{resource_id}',
             controller='ckanext.custom_datastore.controller:DatastoreController',
             action='dictionary', ckan_icon='book')
-
-        def parseBoolString(theString='False'):
-            return theString[0].upper() == 'T'
-        def checkTarget(environ, result):
-            back = parseBoolString(config.get('ckan.gov_theme.is_back', False));
-            ignoreList =  config.get('ckan.api.ignore', 'NotInList')
-            path = environ['PATH_INFO'].split("/")[-1]
-            if  back or ignoreList.find(path) > 0:
-                return False
-            return True
-        m.connect(
-            # '/api/{url:.*}',
-            #'/api/{url:1|2|3/.*}',
-            #'/api/{url:.*/[^datastore].*$}',
-            #'/api/{url:.*}',
-            '/api/{url:.*/[^he].*$}',
-            ##'/api/{url:.*/*}.{[^html]*}',
-            #'/api/{url:.*!snippet*.*$}',
-            #'/api/{url:.*/action.*$}',
-
-            controller='ckanext.custom_datastore.controller:DatastoreController',
-            action='apiCheck',
-            conditions=dict(function=checkTarget))
-            #conditions=toolkit.request.environ("HTTP_PATH").find('html'))
-            #conditions=dict(method=["GET", "POST"]))
         return m
 
 

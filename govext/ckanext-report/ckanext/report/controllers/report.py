@@ -52,7 +52,6 @@ class reportController(base.BaseController):
                 c.report_title = _('Report')
         else:
             c.report_title = _('Report')
-        #global report_referrer
         c.report_ref = report_referrer
         try:
 
@@ -69,7 +68,8 @@ class reportController(base.BaseController):
             data_dict = logic.clean_dict(unflatten(logic.tuplize_dict(logic.parse_params(request.params))))
             context['message'] = data_dict.get('log_message', '')
             c.form = data_dict['name']
-            captcha.check_recaptcha(request)
+            if (config.get('ckan.recaptcha.is_enabled')) == "True":
+                captcha.check_recaptcha(request)
         except logic.NotAuthorized:
             base.abort(401, _('Not authorized to see this page'))
         except captcha.CaptchaError:
@@ -92,11 +92,16 @@ class reportController(base.BaseController):
             error_summary[_(u'request')] = _(u'Missing value')
 
         if len(errors) == 0:
-            global author_email_address
-            #global report_referrer
-            global report_resource_name
-            global report_organization_name
-            global report_dataset_name
+            report_resource_id = data_dict["id"]
+            report_dataset_id = data_dict["report_dataset_id"]
+            author_email_address = data_dict["author_email_address"]
+            report_resource_name = data_dict["report_resource_name"]
+            report_organization_name = data_dict["report_organization_name"]
+            report_dataset_name = data_dict["report_dataset_name"]
+
+            report_referrer = config.get('ckan.site_url') + '/dataset/' + report_dataset_id + '/resource/' + report_resource_id
+
+            c.report_ref = report_referrer
 
             if report_organization_name is None:
                 report_organization_name = ""
@@ -188,8 +193,7 @@ class reportController(base.BaseController):
             # use the ckan api to get the autohr and maintainer details of the data and assign it to the global parameters
             try:
                 uri = request.headers.get('Referer')
-                global report_referrer
-                log.info("report form() uri: " + uri)
+                #global report_referrer
                 global dataid
                 global datasetid
                 if uri:
@@ -200,7 +204,10 @@ class reportController(base.BaseController):
                         dataid = uri[dataidIndex+9:]
                 if "?" in dataid:
                     dataid = dataid.split("?")[0]
+
                 data['id'] = dataid
+                data['report_dataset_id'] = datasetid
+
                 import urllib2, urllib, json
                 # Put the details of the dataset we're going to create into a dict.
                 dataset_dict = {
@@ -211,22 +218,13 @@ class reportController(base.BaseController):
                 # We'll use the package_create function to create a new dataset.
                 resource_show_api = config.get('ckan.site_url')+'/api/3/action/resource_show'
                 resource = urllib2.Request(resource_show_api)
-                # Creating a dataset requires an authorization header.
-                # Replace *** with your API key, from your user account on the CKAN site
-                # that you're creating the dataset on.
                 # Make the HTTP request.
                 response = urllib2.urlopen(resource, data_string)
                 assert response.code == 200
                 # Use the json module to load CKAN's response into a dictionary.
                 response_dict = json.loads(response.read())
-
-                global report_resource_name
-                global author_email_address
-                global report_organization_name
-                global report_dataset_name
-
                 report_resource_name = response_dict['result']['name']
-
+                data['report_resource_name'] = report_resource_name
                 dataset_dict = {
                     'id': response_dict['result']['package_id'],
                 }
@@ -237,10 +235,12 @@ class reportController(base.BaseController):
                 response_dict = json.loads(response.read())
 
                 author_email_address = response_dict['result']['author_email']
+                data['author_email_address'] = author_email_address
                 report_organization_name = response_dict['result']['organization']['title']
+                data['report_organization_name'] = report_organization_name
                 report_dataset_name = response_dict['result']['title']
-                report_referrer = config.get('ckan.site_url') + '/dataset/' + datasetid + '/resource/' + dataid
-                log.info("report form() report_referrer: " + report_referrer)
+                data['report_dataset_name'] = report_dataset_name
+
 
             except Exception as ex:
                 log.info("form() Exception: " + ex.message)

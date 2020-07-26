@@ -41,6 +41,8 @@ from ckanext.custom_datastore.backend import InvalidDataError
 
 from sqlalchemy import create_engine
 
+import ckanext.gov_theme.mailer as mailer
+
 log = logging.getLogger(__name__)
 
 _pg_types = {}
@@ -1009,12 +1011,7 @@ def alter_table(context, data_dict):
 
 def insert_tracking(context, data_dict, api_name):
 
-    try:
-        if toolkit.c.controller != 'api' or toolkit.c.environ['AUTH_TYPE'] == 'cookie':
-            return
-    except:
-        pass
-    
+
     urlstring = toolkit.request.environ['CKAN_CURRENT_URL'].replace('%3D','=').replace('%26','&').replace('%2520',' ').replace('%2522','"').replace('%2A','*').replace('%','%%');
     try:
         res = data_dict['resource_id']
@@ -1041,7 +1038,7 @@ def insert_tracking(context, data_dict, api_name):
         uidName = urlapp
 
     sql_string = "insert into tracking_raw_datasearch (user_key_name, url, tracking_type, access_timestamp, remote_ip, remote_agent ) \
-                    values('" + uidName + "','" + urlstring + "/" + res +  "', '" + api_name + "' , current_timestamp,'" + \
+                    values('" + uidName + "','" + urlstring + "', '" + api_name + "' , current_timestamp,'" + \
                     remoteAddress + "', '" + userAgent + "')"
 
     try:
@@ -1106,17 +1103,30 @@ def upsert_data(context, data_dict):
             columns=sql_columns,
             values=', '.join(['%s' for field in field_names])
         )
-
+        res = None
+        ex = None
         try:
             context['connection'].execute(sql_string, rows)
-        except sqlalchemy.exc.DataError:
-            raise InvalidDataError(
-                toolkit._("The data was invalid (for example: a numeric value "
-                          "is out of range or was inserted into a text field)."
-                          ))
+        except sqlalchemy.exc.DataError as err:
+            #ex = err.message + " " + err.orig.cursor.query
+            err_msg = "ckanext.custom_datastore.backend.postgres - " + err.orig.pgerror + " == " + err.orig.cursor.query
+            err_msg_enc = unicode(err_msg, "utf-8")
+            log.error(err_msg_enc)
+            # send email
+            send_dp_error_email(err_msg_enc)
+            #raise InvalidDataError(
+            #    toolkit._("The data was invalid (for example: a numeric value "
+            #              "is out of range or was inserted into a text field). " + ex
+            #              ))
+            raise ValidationError(
+                {u'records': [err_msg_enc]})
         except sqlalchemy.exc.DatabaseError as err:
             raise ValidationError(
                 {u'records': [_programming_error_summary(err)]})
+        except Exception as e:
+            ex = str(e)
+            raise ValidationError(
+                {u'records': [_programming_error_summary(ex)]})
 
     elif method in [_UPDATE, _UPSERT]:
         unique_keys = _get_unique_key(context, data_dict)
@@ -1219,6 +1229,15 @@ def upsert_data(context, data_dict):
                     raise ValidationError({
                         u'records': [_programming_error_summary(err)],
                         u'_records_row': num})
+
+
+def send_dp_error_email(err_msg_enc):
+    test_email = {'recipient_name': config.get('ckan.site_title'),
+                  'recipient_email': config.get('xloader_error_email_to'),
+                  'subject': config.get('xloader_error_email_subject'),
+                  'body': err_msg_enc}
+    mailer.mail_recipient(**test_email)
+
 
 
 def validate(context, data_dict):
@@ -1550,34 +1569,51 @@ def search(context, data_dict):
 
 
 def search_sql(context, data_dict):
+    log.info("search_sql start")
     backend = DatastorePostgresqlBackend.get_active_backend()
     engine = backend._get_read_engine()
 
+    log.info("befor engine.connect()")
     context['connection'] = engine.connect()
     timeout = context.get('query_timeout', _TIMEOUT)
     _cache_types(context)
 
     sql = data_dict['sql'].replace('%', '%%')
-
+    log.info(sql)
     try:
 
         context['connection'].execute(
             u'SET LOCAL statement_timeout TO {0}'.format(timeout))
-
+        log.info(timeout)
+        #try:
         table_names = datastore_helpers.get_table_names_from_sql(context, sql)
+        if len(table_names) < 1:
+            raise toolkit.NotAuthorized({
+                'permissions': ['Not authorized']
+            })
         log.debug('Tables involved in input SQL: {0!r}'.format(table_names))
-
         system_tables = [t for t in table_names if t.startswith('pg_')]
+        log.info("<system_tables>")
+        log.info(system_tables)
         if len(system_tables):
             raise toolkit.NotAuthorized({
                 'permissions': ['Not authorized to access system tables']
             })
-
+        log.info("<system_tables>")
+        #except TypeError, e:
+        #    log.info("get_table_names_from_sql ERROR")
+        #    log.error(e.message)
+        log.info("<table_names>")
+        log.info(table_names)
+        log.info("</table_names>")
         results = context['connection'].execute(sql)
+        log.info(results)
         insert_tracking(context, data_dict , 'search_sql')
+        log.info("after insert tracking")
         return format_results(context, results, data_dict)
 
     except ProgrammingError, e:
+        log.error(e.message)
         if e.orig.pgcode == _PG_ERR_CODE['permission_denied']:
             raise toolkit.NotAuthorized({
                 'permissions': ['Not authorized to read resource.']
@@ -1715,6 +1751,7 @@ class DatastorePostgresqlBackend(DatastoreBackend):
         # Check whether users have disabled datastore_search_sql
         self.enable_sql_search = toolkit.asbool(
             self.config.get('ckan.datastore.sqlsearch.enabled', True))
+        log.info("enable_sql_search = ",  self.enable_sql_search)
 
         # Check whether we are running one of the paster commands which means
         # that we should ignore the following tests.
@@ -1735,6 +1772,8 @@ class DatastorePostgresqlBackend(DatastoreBackend):
                      'The sql search will not be available.')
         else:
             self.read_url = self.config['ckan.datastore.read_url']
+
+        log.info("legasy mode = ", self.legacy_mode)
 
         self.read_engine = self._get_read_engine()
         if not model.engine_is_pg(self.read_engine):

@@ -6,66 +6,173 @@ errors - A dict of errors for the fields.
 limit  - The total number of fields that should be output.
 Example:
 
-  {% snippet 'snippets/custom_form_fields.html', extras=data.extras, errors=errors, limit=3 %}
+  {% snippet 'snippets/custom_form_fields.html', extras=data.extras, errors=errors, limit=3%}
 
 #}
 {% import "macros/form.html" as form %}
 <div data-module="custom-fields">
 
-  <input id="field-extras-0-key" type="text" name="extras__0__key" value="{{ _('Frequency') }}" style="visibility:hidden"/>
-  <input id="field-extras-1-key" type="text" name="extras__1__key" value="{{ _('Update') }}" style="visibility:hidden"/>
+  <input id="field-extras-0-key" type="text" name="extras__0__key" value="{{ 'Frequency' }}" style="visibility:hidden"/>
+  <input id="field-extras-1-key" type="text" name="extras__1__key" value="{{ 'Update' }}" style="visibility:hidden"/>
+  <input id="field-extras-2-key" type="text" name="extras__2__key" value="{{ 'Accessibility' }}" style="visibility:hidden"/>
+  <input id="field-extras-3-key" type="text" name="extras__3__key" value="{{ 'ContainPrivateData' }}" style="visibility:hidden"/>
+  <input id="field-extras-4-key" type="text" name="extras__4__key" value="{{ 'is_geographic' }}" style="visibility:hidden"/>
 
   {% for extra  in extras  %}
 
-    {% if extra['key'] == _('Frequency') %}
+      {% if extra.key == 'Frequency' %}
 
-      {{ form.select(name='freq',id='freq', onchange='copyValue("freq","field-extras-0-value")', label=_('Frequency'),
-        options=[{'name':extra['key'], 'value': extra['value']}, {'name':_('Year'), 'value': _('Year')},{'name': _('Month'),
-        'value': _('Month')},{'name': _('Week'), 'value': _('Week')},{'name': _('Day'), 'value': _('Day')},{'name': _('Hour'),'value': _('Hour')}], is_required=True) }}
-        <input id="field-extras-0-value" type="text" name="extras__0__value" value={{ extra['value'] }} placeholder="" style="visibility:hidden"/>
+        {{ form.select(
+                      id='field-extras-0',
+                      label=_('Frequency'),
+                      options=[ {'name': _('NA'),'value': _('NA')},{'name':_('Year'), 'value': _('Year')}, {'name': _('Quarter'),'value': _('Quarter')},
+                                {'name': _('Month'), 'value': _('Month')},{'name': _('Week'), 'value': _('Week')},{'name': _('Day'), 'value': _('Day')},
+                                {'name': _('NoUpdate'),'value': _('NoUpdate')}, {'name': _('NotConstant'),'value': _('NotConstant')}],
+                      is_required=True,
+                      onchange='copyValue(id,"field-extras-0-value")',
+                      selected = extra.value,
+                      error=errors['extras__0__' ~ 'key'] or errors['extras__0__' ~ 'value']
+       )}}
+       <input id="field-extras-0-value" type="text" name="extras__0__value" value="{{ extra.value }}" placeholder="" style="visibility:hidden"/>
+      {% elif extra.key == 'Update' %}
+        {{ form.select(
+                      id='field-extras-1',
+                      label=_('Update'),
+                      options=[ {'name': _('NA'),'value': _('NA')}, {'name':_('Manual'), 'value': _('Manual')},{'name': _('Automat'), 'value': _('Automat')}],
+                      is_required=True,
+                      onchange='copyValue(id,"field-extras-1-value")',
+                      selected = extra.value,
+                      error=errors['extras__1__' ~ 'key'] or errors['extras__1__' ~ 'value']
+       )}}
+        <input id="field-extras-1-value" type="text" name="extras__1__value" value="{{ extra.value }}" placeholder="" style="visibility:hidden"/>
 
-    {% elif extra['key'] == _('Update') %}
-        {{ form.select(name='updateOption',id='updateOption', onchange='copyValue("updateOption","field-extras-1-value")', label=_('Update'), options=[{'name':extra['key'], 'value': extra['value']}, {'name':_('Manual'), 'value': _('Manual')},{'name': _('Automat'), 'value': _('Automat')}],   is_required=True) }}
-         <input id="field-extras-1-value" type="text" name="extras__1__value" value={{ extra['value'] }} placeholder="" style="visibility:hidden"/>
+      {% elif extra.key == 'Accessibility' %}
+        {{ form.select(
+                      id='field-extras-2',
+                      label=_('Accessibility'),
+                      options=[ {'name':_('Accessible'), 'value': _('Accessible')},{'name': _('NotAccessible'), 'value': _('NotAccessible')}],
+                      is_required=True,
+                      onchange='copyValue(id,"field-extras-2-value")',
+                      selected = extra.value,
+                      error=errors['extras__2__' ~ 'key'] or errors['extras__2__' ~ 'value']
+         )}}
+        <input id="field-extras-2-value" type="text" name="extras__2__value" value="{{ extra.value }}" placeholder="" style="visibility:hidden"/>
+      {% elif extra.key == 'ContainPrivateData' %}
+        {{ form.select(
+                      id='field-extras-3',
+                      label=_('ContainPrivateData'),
+                      options=[ {'name': _('No'), 'value': _('No')},{'name': _('Yes'), 'value': _('Yes')}],
+                      is_required=True,
+                      onchange='copyValue(id,"field-extras-3-value")',
+                      selected = extra.value,
+                      error=errors['extras__3__' ~ 'key'] or errors['extras__3__' ~ 'value']
+         )}}
+        <input id="field-extras-3-value" type="text" name="extras__3__value" value="{{ extra.value }}" placeholder="" style="visibility:hidden"/>
+
+      {% elif extra.key == 'is_geographic' %}
+        {{ form.select(
+                      id='field-extras-4',
+                      label=_('is_geographic'),
+                      options=[ {'name': _('No'), 'value': _('No')},{'name': _('Yes'), 'value': _('Yes')}],
+                      is_required=True,
+                      onchange='copyValue(id,"field-extras-4-value")',
+                      selected = extra.value,
+                      error=errors['extras__4__' ~ 'key'] or errors['extras__4__' ~ 'value']
+         )}}
+        <input id="field-extras-4-value" type="text" name="extras__4__value" value="{{ extra.value }}" placeholder="" style="visibility:hidden"/>
       {% else %}
 
-      
+         {% set prefix = 'extras__%d__' % (loop.index0+1) %}
 
-
-      {% set prefix = 'extras__%d__' % loop.index0 %}
-      {{ form.custom(
-      names=(prefix ~ 'key', prefix ~ 'value', prefix ~ 'deleted'),
-      id='field-extras-%d' % loop.index,
-      label=_('Custom Field'),
-      values=(extra.key, extra.value, extra.deleted),
-      error=errors[prefix ~ 'key'] or errors[prefix ~ 'value']
-      ) }}
-    {% endif %}
+          {{ form.custom(
+            names=(prefix ~ 'key', prefix ~ 'value', prefix ~ 'deleted'),
+            id='field-extras-%d' % loop.index,
+            label=_('Custom Field'),
+            values=(extra.key, extra.value, extra.deleted),
+            error=errors[prefix ~ 'key'] or errors[prefix ~ 'value']
+          ) }}
+      {% endif %}
   {% endfor %}
+
+
+
+
   {# Add a max of 3 empty columns #}
   {% set total_extras = extras|count %}
-  {% set empty_extras = (limit or 3) - total_extras %}
+  {% set empty_extras = (limit or 9) - total_extras %}
   {% if empty_extras <= 0 %}{% set empty_extras = 1 %}{% endif %}
-
-
   {% for extra in range(total_extras , total_extras + empty_extras  )  %}
 
     {% set index = loop.index0 + (extras|count)  %}
-    {% if index == 0 %}
-   {{ form.select(name='freq',id='freq', onchange='copyValue("freq","field-extras-0-value")', label=_('Frequency'), options=[{'name':extra['key'], 'value': extra['value']}, {'name':_('Year'), 'value': _('Year')},{'name': _('Month'), 'value': _('Month')},{'name':  _('Week'), 'value':  _('Week')},{'name':  _('Day'), 'value':  _('Day')},{'name':  _('Hour'), 'value':  _('Hour')}],   is_required=True) }}
-   <input id="field-extras-0-value" type="text" name="extras__0__value" value="" placeholder="" style="visibility:hidden"/>
-  {% elif index == 1 %}
-    {{ form.select(name='updateOption',id='updateOption', onchange='copyValue("updateOption","field-extras-1-value")', label=_('Update'), options=[{'name':extra['key'], 'value': extra['value']}, {'name':_('Manual'), 'value': _('Manual')},{'name': _('Automat'), 'value': _('Automat')}],   is_required=True) }}
-   <input id="field-extras-1-value" type="text" name="extras__1__value" value="" placeholder="" style="visibility:hidden"/>
-  {% else %}
-    {% set prefix = 'extras__%d__' % index %}
-    {{ form.custom(
-      names=(prefix ~ 'key', prefix ~ 'value', prefix ~ 'deleted'),
-      id='field-extras-%d' % index,
-      label=_('Custom Field'),
-      values=(extra.key, extra.value, extra.deleted),
-      error=errors[prefix ~ 'key'] or errors[prefix ~ 'value']
-    ) }}
-  {% endif %}
+      {% if index == 0 %}
+       {{ form.select(
+                      id='field-extras-0',
+                      label=_('Frequency'),
+                      options=[ {'name': _('NA'),'value': _('NA')},{'name':_('Year'), 'value': _('Year')}, {'name': _('Quarter'),'value': _('Quarter')},
+                                {'name': _('Month'), 'value': _('Month')},{'name': _('Week'), 'value': _('Week')},{'name': _('Day'), 'value': _('Day')},
+                                {'name': _('NoUpdate'),'value': _('NoUpdate')}, {'name': _('NotConstant'),'value': _('NotConstant')}],
+                      is_required=True,
+                      onchange='copyValue(id,"field-extras-0-value")',
+                      selected = _('NA'),
+                      error=errors['extras__0__' ~ 'key'] or errors['extras__0__' ~ 'value']
+       )}}
+       <input id="field-extras-0-value" type="text" name="extras__0__value" value="{{_('NA')}}" placeholder="" style="visibility:hidden"/>
+
+      {% elif index == 1 %}
+        {{ form.select(
+                      id='field-extras-1',
+                      label=_('Update'),
+                      options=[ {'name': _('NA'),'value': _('NA')}, {'name':_('Manual'), 'value': _('Manual')},{'name': _('Automat'), 'value': _('Automat')}],
+                      is_required=True,
+                      onchange='copyValue(id,"field-extras-1-value")',
+                      selected = _('NA'),
+                      error=errors['extras__1__' ~ 'key'] or errors['extras__1__' ~ 'value']
+        )}}
+        <input id="field-extras-1-value" type="text" name="extras__1__value" value="{{_('NA')}}" placeholder="" style="visibility:hidden"/>
+      {% elif index == 2 %}
+        {{ form.select(
+                      id='field-extras-2',
+                      label=_('Accessibility'),
+                      options=[ {'name':_('Accessible'), 'value': _('Accessible')},{'name': _('NotAccessible'), 'value': _('NotAccessible')}],
+                      is_required=True,
+                      onchange='copyValue(id,"field-extras-2-value")',
+                      selected = _('Accessible'),
+                      error=errors['extras__2__' ~ 'key'] or errors['extras__2__' ~ 'value']
+         )}}
+         <input id="field-extras-2-value" type="text" name="extras__2__value" value="{{_('Accessible')}}" placeholder="" style="visibility:hidden"/>
+      {% elif index == 3 %}
+
+        {{ form.select(
+                      id='field-extras-3',
+                      label=_('ContainPrivateData'),
+                      options=[ {'name': _('No'), 'value': _('No')},{'name': _('Yes'), 'value': _('Yes')}],
+                      is_required=True,
+                      onchange='copyValue(id,"field-extras-3-value")',
+                      selected = _('No'),
+                      error=errors['extras__3__' ~ 'key'] or errors['extras__3__' ~ 'value']
+         )}}
+         <input id="field-extras-3-value" type="text" name="extras__3__value" value="{{_('No')}}" placeholder="" style="visibility:hidden"/>
+        {% elif index == 4 %}
+
+        {{ form.select(
+                      id='field-extras-4',
+                      label=_('is_geographic'),
+                      options=[ {'name': _('No'), 'value': _('No')},{'name': _('Yes'), 'value': _('Yes')}],
+                      is_required=True,
+                      onchange='copyValue(id,"field-extras-4-value")',
+                      selected = _('No'),
+                      error=errors['extras__4__' ~ 'key'] or errors['extras__4__' ~ 'value']
+         )}}
+        <input id="field-extras-4-value" type="text" name="extras__4__value" value="{{_('No')}}" placeholder="" style="visibility:hidden"/>
+      {% else %}
+          {% set prefix = 'extras__%d__' % (index+1) %}
+          {{ form.custom(
+            names=(prefix ~ 'key', prefix ~ 'value', prefix ~ 'deleted'),
+            id='field-extras-%d' % index,
+            label=_('Custom Field'),
+            values=(extra.key, extra.value, extra.deleted),
+            error=errors[prefix ~ 'key'] or errors[prefix ~ 'value']
+          ) }}
+      {% endif %}
   {% endfor %}
 </div>

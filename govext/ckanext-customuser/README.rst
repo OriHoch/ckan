@@ -2,11 +2,11 @@
    these badges work. The necessary Travis and Coverage config files have been
    generated for you.
 
-.. image:: https://travis-ci.org//ckanext-customuser.svg?branch=master
-    :target: https://travis-ci.org//ckanext-customuser
+.. image:: https://travis-ci.org/michab23/ckanext-customuser.svg?branch=master
+    :target: https://travis-ci.org/michab23/ckanext-customuser
 
-.. image:: https://coveralls.io/repos//ckanext-customuser/badge.svg
-  :target: https://coveralls.io/r//ckanext-customuser
+.. image:: https://coveralls.io/repos/michab23/ckanext-customuser/badge.svg
+  :target: https://coveralls.io/r/michab23/ckanext-customuser
 
 .. image:: https://pypip.in/download/ckanext-customuser/badge.svg
     :target: https://pypi.python.org/pypi//ckanext-customuser/
@@ -90,7 +90,7 @@ Development Installation
 To install ckanext-customuser for development, activate your CKAN virtualenv and
 do::
 
-    git clone https://github.com//ckanext-customuser.git
+    git clone https://github.com/michab23/ckanext-customuser.git
     cd ckanext-customuser
     python setup.py develop
     pip install -r dev-requirements.txt

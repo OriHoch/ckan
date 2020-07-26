@@ -1,0 +1,4 @@
+include README.rst
+include LICENSE
+include requirements.txt
+recursive-include ckanext/get_max_column_length *.html *.json *.js *.less *.css *.mo

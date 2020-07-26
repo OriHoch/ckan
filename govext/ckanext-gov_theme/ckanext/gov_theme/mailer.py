@@ -53,10 +53,11 @@ def get_reset_link(user):
                            id=user.id,
                            key=user.reset_key))
 
-def mail_recipient(recipient_name, recipient_email, subject,
-        body, headers={}):
+def mail_recipient(recipient_name, recipient_email, subject,body, headers={}):
+    site_title = _mailer.config.get('ckan.site_title')
+    site_url = _mailer.config.get('ckan.site_url')
     return _mail_recipient(recipient_name, recipient_email,
-            g.site_title, g.site_url, subject, body, headers=headers)
+                           site_title, site_url, subject, body, headers=headers)
 
 
 def _mail_recipient(recipient_name, recipient_email,

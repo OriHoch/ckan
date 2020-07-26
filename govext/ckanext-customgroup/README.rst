@@ -2,11 +2,11 @@
    these badges work. The necessary Travis and Coverage config files have been
    generated for you.
 
-.. image:: https://travis-ci.org//ckanext-custom-group.svg?branch=master
-    :target: https://travis-ci.org//ckanext-custom-group
+.. image:: https://travis-ci.org/michab23/ckanext-custom-group.svg?branch=master
+    :target: https://travis-ci.org/michab23/ckanext-custom-group
 
-.. image:: https://coveralls.io/repos//ckanext-custom-group/badge.svg
-  :target: https://coveralls.io/r//ckanext-custom-group
+.. image:: https://coveralls.io/repos/michab23/ckanext-custom-group/badge.svg
+  :target: https://coveralls.io/r/michab23/ckanext-custom-group
 
 .. image:: https://pypip.in/download/ckanext-custom-group/badge.svg
     :target: https://pypi.python.org/pypi//ckanext-custom-group/
@@ -90,7 +90,7 @@ Development Installation
 To install ckanext-custom-group for development, activate your CKAN virtualenv and
 do::
 
-    git clone https://github.com//ckanext-custom-group.git
+    git clone https://github.com/michab23/ckanext-custom-group.git
     cd ckanext-custom-group
     python setup.py develop
     pip install -r dev-requirements.txt

@@ -1,136 +1,16 @@
-import re
+import ckan
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 from ckan.lib.plugins import DefaultTranslation
-import pylons.config as config
-import urllib2, urllib, json
-from ckan.common import _, request, c, response
-import webhelpers.pylonslib.secure_form as auth_token
+
 import ckanext.gov_theme.action as _action
 import ckanext.gov_theme.auth as _auth
 import ckanext.gov_theme.schema as _schema
-import ckan
+import ckanext.gov_theme.helpers as gov_helpers
 
-import ckan.lib.formatters as formatters
-from ckan.lib.helpers import date_str_to_datetime
-from routes import url_for
+import logging
+log = logging.getLogger(__name__)
 
-def anti_csrf_hidden_field():
-    hidden_field = auth_token.auth_token_hidden_field()
-    return hidden_field
-
-def parseBoolString(theString = 'False'):
-  return theString[0].upper()== 'T'
-def is_back():
-    try:
-        value = parseBoolString(config.get('ckan.gov_theme.is_back', False))
-        return value
-    except:
-        return False
-def getTimeout():
-    try:
-        # return in milisec
-        value = config.get('who.timeout')
-        return value
-    except:
-        return 0
-
-def api_usage_count(id):
-    from sqlalchemy import create_engine
-    from sqlalchemy.sql import text
-
-
-    eng = create_engine(config.get('sqlalchemy.url'))
-    con = eng.connect()
-
-    sql = 'SELECT COUNT(*) FROM tracking_raw_datasearch'
-    sql = sql +  " WHERE url like '%" + id + "%' "
-    ret_val = 0
-    try:
-        result = con.execute(text(sql))
-
-        if result.rowcount == 1:
-            name = result.fetchone()
-            ret_val = name._row[0]
-            return ret_val
-    except:
-        print ("Api tracking table problem!!! Check for missing table tracking_raw_datasearch ")
-
-    con.close()
-    return ret_val
-
-def tags_count():
-    '''Return a sorted list of the groups with the most datasets.'''
-
-    tags_translate = [ _('Transport'), _('Justice'), _('Energy Watter'), _('Environment'), _('Finance Economy'), _('Population'), _('Religion'),   _('Education Culture'),   _('Health Wellness'), _('Accommodation'), _('Tourism') ]
-
-   #/api/action/package_search?fq=tags:"economy"
-    tags_counter = []
-
-   #Put the details into a dict.
-    for num in range(1,11):
-        homepage_tag_num = "homepage_tag"+str(num)
-        homepage_tag = config.get(homepage_tag_num)
-        homepage_tag_translate = _(homepage_tag)
-        homepage_tag_translate.encode('utf-8')
-        query = "tags:"+'"'+homepage_tag_translate+'"'
-        dataset_dict = {
-           'fq': query,
-        }
-
-        homepage_tag_icon_num = "homepage_tag_icon"+str(num)
-        homepage_tag_icon = config.get(homepage_tag_icon_num)
-
-        # Use the json module to dump the dictionary to a string for posting.
-        data_string = urllib.quote(json.dumps(dataset_dict))
-        package_search_api = config.get('ckan.site_url')+'/api/3/action/package_search'
-        tag = urllib2.Request(package_search_api)
-        # Make the HTTP request.
-        response = urllib2.urlopen(tag, data_string)
-        assert response.code == 200
-        # Use the json module to load CKAN's response into a dictionary.
-        response_dict = json.loads(response.read())
-        tag_count = response_dict['result']['count']
-        tags_counter.append(dict([('name', homepage_tag_translate), ('icon', homepage_tag_icon), ('count', tag_count)]))
-
-    return tags_counter
-
-
-def format_resource_items(items):
-    ''' Take a resource item list and format nicely with blacklisting etc. '''
-    blacklist = ['name', 'description', 'url', 'tracking_summary', 'format', 'position', 'is_local_resource',
-                 'datastore_active', 'on_same_domain', 'mimetype', 'state', 'url_type', 'has_views']
-    output = []
-    # regular expressions for detecting types in strings
-    reg_ex_datetime = '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{6})?$'
-    reg_ex_int = '^-?\d{1,}$'
-    reg_ex_float = '^-?\d{1,}\.\d{1,}$'
-    for key, value in items:
-        if not value or key in blacklist:
-            continue
-        # size is treated specially as we want to show in MiB etc
-        if key == 'size':
-            try:
-                value = formatters.localised_filesize(int(value))
-            except ValueError:
-                # Sometimes values that can't be converted to ints can sneak
-                # into the db. In this case, just leave them as they are.
-                pass
-        elif isinstance(value, basestring):
-            # check if strings are actually datetime/number etc
-            if re.search(reg_ex_datetime, value):
-                datetime_ = date_str_to_datetime(value)
-                value = formatters.localised_nice_date(datetime_)
-            elif re.search(reg_ex_float, value):
-                value = formatters.localised_number(float(value))
-            elif re.search(reg_ex_int, value):
-                value = formatters.localised_number(int(value))
-        elif ((isinstance(value, int) or isinstance(value, float))
-                and value not in (True, False)):
-            value = formatters.localised_number(value)
-        key = key.replace('_', ' ')
-        output.append((key, value))
-    return sorted(output, key=lambda x: x[0])
 
 class Gov_ThemePlugin(plugins.SingletonPlugin, DefaultTranslation):
     plugins.implements(plugins.IConfigurer)
@@ -149,16 +29,22 @@ class Gov_ThemePlugin(plugins.SingletonPlugin, DefaultTranslation):
         ckan.logic.schema.user_edit_form_schema = _schema.user_edit_form_schema
         ckan.logic.schema.default_update_user_schema = _schema.default_update_user_schema
 
-    #ITemplateHelpers
+    # ITemplateHelpers
     def get_helpers(self):
-        return {'is_back_site': is_back,
-                'get_tags_count': tags_count,
-                'token_hidden_field': anti_csrf_hidden_field,  # for csrf hidden field
-                'format_resource_items': format_resource_items,
-                'api_usage_count': api_usage_count,
-                'sessionTimeout': getTimeout,
+        return {'is_back_site': gov_helpers.is_back,
+                'get_tags_count': gov_helpers.tags_count,
+                'token_hidden_field': gov_helpers.anti_csrf_hidden_field,  # for csrf hidden field
+                'format_resource_items': gov_helpers.format_resource_items,
+                'api_usage_count': gov_helpers.api_usage_count,
+                'gui_view_count': gov_helpers.gui_view_count,
+                'resource_download_count': gov_helpers.resource_download_count,
+                'sessionTimeout': gov_helpers.getTimeout,
+                'get_config_value': gov_helpers.get_config_value,
+                'get_datasets_count': gov_helpers.get_datasets_count,
+                'get_organizations_count': gov_helpers.get_organizations_count
                 }
-    #IActions
+
+    # IActions
     def get_actions(self):
         return {'resource_create': _action.resource_create,
                 'resource_update': _action.resource_update,
@@ -221,7 +107,7 @@ class Gov_ThemePlugin(plugins.SingletonPlugin, DefaultTranslation):
                 'member_roles_list': _action.member_roles_list,
                 'package_create': _action.package_create}
 
-    #IAuthFunctions
+    # IAuthFunctions
     def get_auth_functions(self):
         return {'package_create': _auth.package_create,
                 'resource_create': _auth.resource_create,
@@ -276,20 +162,4 @@ class Gov_ThemePlugin(plugins.SingletonPlugin, DefaultTranslation):
                 'task_status_show': _auth.task_status_show,
                 'resource_status_show': _auth.resource_status_show
                 }
-
-def before_map(self, m):
-	m.connect('contact',  # name of path route
-		url_for(controller='home', action='contact'),  # url to map path to
-		controller='home',  # controller
-		action='contact')  # controller action (method)
-	return m
-
-
-
-
-
-
-
-
-
 
