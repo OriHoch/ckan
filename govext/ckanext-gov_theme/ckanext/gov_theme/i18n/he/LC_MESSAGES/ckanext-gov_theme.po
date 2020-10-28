@@ -367,7 +367,7 @@ msgstr ""
 "הנתונים נגישים לכל על ידי מתן כלים לייעול פרסום, שיתוף, חיפוש ושימוש. </"
 "p><p>בהתאם לרשיון השימוש ב ckan ובכפוף לתנאי השימוש Version 3 AFFERO GENERAL "
 "PUBLIC LICENSE מצורף קוד ההרחבות שבוצעו באתר <a href='https://github.com/CIOIL/"
-"DataGovIL/tree/master/govext'>להורדת קוד ההרחבות</a>, מבוסס על Ckan 2.7.2 <a "
+"DataGovIL/tree/master/govext'>להורדת קוד ההרחבות</a>, מבוסס על Ckan 2.8.2 <a "
 "href='https://github.com/CIOIL/DataGovIL'>להורדת קוד המקור</a>.</p><p><b>כיצד "
 "ניתן להשתמש במידע המופיע באתר? </b></p><p>המשתמשים ב- data.gov.il מקבלים יד "
 "חופשית לפיתוח יישומים ומערכות המבוססות על המידע המפורסם בו וכל עדכון במאגרי "
@@ -1539,10 +1539,10 @@ msgid "spatial coverage"
 msgstr "תיאור הכיסוי המרחבי"
 
 msgid "geodetic"
-msgstr "מערכת ייחוס גיאודטיות"
+msgstr "מערכת ייחוס גיאודטית"
 
 msgid "demarcation"
-msgstr "קוארדינטות/ תיחום גאוגרפי"
+msgstr "קואורדינטות/ תיחום גאוגרפי"
 
 msgid "earthly"
 msgstr "ארצי"
@@ -1594,3 +1594,14 @@ msgstr "רישיון"
 
 msgid "Tags"
 msgstr "תגיות"
+
+msgid "{kibibytes} KiB"
+msgstr "{kibibytes} KB"
+
+#: ckan/lib/formatters.py:171
+msgid "{mebibytes} MiB"
+msgstr "{mebibytes} MB"
+
+#: ckan/lib/formatters.py:173
+msgid "{gibibytes} GiB"
+msgstr "{gibibytes} GB"
